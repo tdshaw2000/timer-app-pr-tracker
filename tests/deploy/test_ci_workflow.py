@@ -126,3 +126,8 @@ def test_deploy_runs_nothing_but_the_forced_remote_command():
     assert ssh_lines
     for line in ssh_lines:
         assert "${{ secrets.DEPLOY_HOST }}" in line
+
+
+def test_a_newer_push_never_cancels_a_run_on_main_that_may_be_deploying():
+    concurrency = yaml.safe_load(CI.read_text())["concurrency"]
+    assert concurrency["cancel-in-progress"] == "${{ github.ref != 'refs/heads/main' }}"
