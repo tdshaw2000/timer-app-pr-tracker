@@ -121,7 +121,11 @@ Caddy for a few seconds.
 ## Rolling back by hand
 
 `pull_deploy.py` rolls back an image that doesn't turn healthy and writes its digest to
-`bad-images` so it isn't tried again. To go back to an older image yourself, put its digest in
+`bad-images` so it isn't tried again. A later run that meets a listed digest fails with a message
+saying so, rather than reporting success. If the failure was only transient (the edge network
+missing during first setup, a slow start), clear it: delete that digest's line from
+`/srv/timer-app-pr-tracker/bad-images`, then run `~/apps/timer-app-pr-tracker/deploy-launcher.sh`
+(or re-run the failed `deploy` job). To go back to an older image yourself, put its digest in
 `/srv/timer-app-pr-tracker/.env` as `TIMER_IMAGE=ghcr.io/tdshaw2000/timer-app-pr-tracker@sha256:...`
 (the `sha-<commit>` tags in GHCR show which commit each came from) and run
 `cd /srv/timer-app-pr-tracker && docker compose up -d --wait web`. The next push to `main`

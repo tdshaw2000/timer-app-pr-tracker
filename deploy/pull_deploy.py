@@ -3,7 +3,8 @@
 Pulls the newest main image from GHCR. If its digest differs from the one pinned as TIMER_IMAGE
 in .env, pins it, restarts the web service and waits for its health check. An image that
 doesn't turn healthy is rolled back to the previous digest and written to bad-images, so it
-isn't tried again. GitHub Actions never connects to the VM; the VM only pulls a public image.
+isn't tried again, and later runs that meet it fail until it is cleared. GitHub Actions only
+triggers the forced-command launcher over SSH; the VM itself pulls a public image.
 
 Standard library only: this runs on the host's python3, not in the image.
 """
@@ -95,7 +96,10 @@ def deploy(folder, run):
     if new == live:
         return "up to date"
     if new in _bad_images(folder):
-        return "skipped a known-bad image"
+        raise DeployFailed(
+            f"{new} is listed in {BAD_IMAGES_FILE} from an earlier failed start; nothing changed. "
+            "See 'Rolling back by hand' in docs/runbook.md to clear it"
+        )
     _pin(folder, new)
     if _start_web(run):
         run(["docker", "image", "prune", "--force", "--filter", f"label={SOURCE_LABEL}"])

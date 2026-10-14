@@ -158,8 +158,9 @@ def test_main_exits_non_zero_for_a_remembered_bad_image(tmp_path, capsys):
 
 
 def test_the_docstring_says_github_actions_only_triggers_the_forced_command_launcher():
-    assert "never connects" not in pull_deploy.__doc__
-    assert "launcher" in pull_deploy.__doc__
+    docstring = _load().__doc__  # not pull_deploy.__doc__: that is the helper class's
+    assert "never connects" not in docstring
+    assert "launcher" in docstring
 
 
 def test_a_failed_first_deploy_leaves_no_pin_and_remembers_the_image(tmp_path):
