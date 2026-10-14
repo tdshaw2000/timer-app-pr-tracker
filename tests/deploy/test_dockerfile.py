@@ -1,5 +1,6 @@
 """The image the VM runs (see docs/runbook.md)."""
 
+import json
 import re
 from pathlib import Path
 
@@ -46,9 +47,9 @@ def test_the_image_runs_as_a_non_root_user():
 
 def test_the_image_serves_the_app_on_port_8000():
     assert ("EXPOSE", "8000") in _instructions()
-    command = next(arguments for keyword, arguments in _instructions() if keyword == "CMD")
-    assert "uvicorn timer_app_pr_tracker.web:app" in command
-    assert "--port 8000" in command
+    command = json.loads(next(a for keyword, a in _instructions() if keyword == "CMD"))
+    assert command[:2] == ["uvicorn", "timer_app_pr_tracker.web:app"]
+    assert command[command.index("--port") + 1] == "8000"
 
 
 def test_the_image_checks_its_own_health():
