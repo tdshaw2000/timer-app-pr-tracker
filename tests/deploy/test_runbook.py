@@ -49,3 +49,9 @@ def test_the_pr_is_merged_before_the_vm_clones_the_launcher_out_of_main():
     # deploy-launcher.sh only exists on main once the PR that adds it has been merged.
     runbook = _runbook()
     assert runbook.index("Merge the PR") < runbook.index("git clone")
+
+
+def test_it_says_how_to_clear_a_digest_wrongly_recorded_as_bad():
+    runbook = _runbook()
+    assert "/srv/timer-app-pr-tracker/bad-images" in runbook
+    assert "deploy-launcher.sh" in runbook[runbook.index("bad-images") :]

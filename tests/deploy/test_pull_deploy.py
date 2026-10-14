@@ -140,13 +140,26 @@ def test_an_unhealthy_image_is_rolled_back_and_remembered(tmp_path):
     assert docker.ran("docker", "image", "prune") == []
 
 
-def test_a_remembered_bad_image_is_not_tried_again(tmp_path):
+def test_a_remembered_bad_image_is_not_tried_again_and_fails_the_deploy(tmp_path):
+    # Exiting zero here would turn a re-run of a failed deploy job green with nothing deployed.
     _write_env(tmp_path, f"TIMER_IMAGE={OLD}\n")
     (tmp_path / "bad-images").write_text(NEW + "\n")
     docker = FakeDocker(tmp_path)
-    assert pull_deploy.deploy(tmp_path, docker) == "skipped a known-bad image"
+    with pytest.raises(pull_deploy.DeployFailed, match="bad-images"):
+        pull_deploy.deploy(tmp_path, docker)
     assert docker.ran("docker", "compose") == []
     assert _env(tmp_path)["TIMER_IMAGE"] == OLD
+
+
+def test_main_exits_non_zero_for_a_remembered_bad_image(tmp_path, capsys):
+    (tmp_path / "bad-images").write_text(NEW + "\n")
+    assert pull_deploy.main(tmp_path, FakeDocker(tmp_path)) == 1
+    assert "bad-images" in capsys.readouterr().err
+
+
+def test_the_docstring_says_github_actions_only_triggers_the_forced_command_launcher():
+    assert "never connects" not in pull_deploy.__doc__
+    assert "launcher" in pull_deploy.__doc__
 
 
 def test_a_failed_first_deploy_leaves_no_pin_and_remembers_the_image(tmp_path):
