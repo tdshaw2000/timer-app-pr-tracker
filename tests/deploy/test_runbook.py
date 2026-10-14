@@ -43,3 +43,9 @@ def test_it_routes_the_hostname_through_the_shared_edge_caddy():
 def test_it_covers_the_everyday_operations():
     for heading in ("One-time setup", "Everyday operations", "Rolling back by hand"):
         assert f"## {heading}" in _runbook()
+
+
+def test_the_pr_is_merged_before_the_vm_clones_the_launcher_out_of_main():
+    # deploy-launcher.sh only exists on main once the PR that adds it has been merged.
+    runbook = _runbook()
+    assert runbook.index("Merge the PR") < runbook.index("git clone")
