@@ -22,15 +22,20 @@ Records Analyser's.
 
 ## One-time setup
 
-Run these on the VM as the `ubuntu` user (`ssh -i ~/.ssh/oci.key ubuntu@<server-ip>`, the same way
-you reach it for the other apps). Nothing here stops or changes the other two apps until step 7,
-and step 7 only recreates their Caddy for a few seconds.
+Steps 1, 5 and 6 (part) are done on GitHub in your browser; the rest on the VM as the `ubuntu`
+user (`ssh -i ~/.ssh/oci.key ubuntu@<server-ip>`, the same way you reach it for the other apps).
+Nothing here stops or changes the other two apps until step 7, and step 7 only recreates their
+Caddy for a few seconds.
 
-1. **Check the tools.** Both were set up for the other apps, so this should just pass.
+1. **Merge the PR** that adds `deploy/` and this runbook, from GitHub. The `publish` job then
+   pushes `ghcr.io/tdshaw2000/timer-app-pr-tracker:main`. The `deploy` job that follows will
+   fail, because the VM isn't set up yet and a new package starts private. That is expected.
+
+2. **Check the tools.** Both were set up for the other apps, so this should just pass.
    `docker compose version` must be v2.17 or later, `python3 --version` 3.10 or later, and
    `groups` must include `docker`.
 
-2. **Set up the deploy checkout, the launcher and the install directory:**
+3. **Set up the deploy checkout, the launcher and the install directory:**
 
    ```sh
    mkdir -p ~/apps/timer-app-pr-tracker
@@ -44,7 +49,7 @@ and step 7 only recreates their Caddy for a few seconds.
    The launcher lives beside `repo/`, not inside it: a `git reset --hard` would otherwise
    rewrite the very script that is running it.
 
-3. **Make a deploy key for GitHub Actions** (a dedicated key, not a personal one), restricted
+4. **Make a deploy key for GitHub Actions** (a dedicated key, not a personal one), restricted
    server-side to running nothing but the launcher:
 
    ```sh
@@ -56,16 +61,12 @@ and step 7 only recreates their Caddy for a few seconds.
    cat ~/timer-deploy-key
    ```
 
-4. **Add two secrets to the GitHub repo** (Settings, Secrets and variables, Actions, New
+5. **Add two secrets to the GitHub repo** (Settings, Secrets and variables, Actions, New
    repository secret), then delete the key files with `rm ~/timer-deploy-key ~/timer-deploy-key.pub`:
 
    - `DEPLOY_HOST`: the server's IP or hostname (the same value the other two repos use).
    - `DEPLOY_SSH_KEY`: the whole private key printed by `cat ~/timer-deploy-key`, including the
      `BEGIN` and `END` lines.
-
-5. **Publish the first image.** Merge the PR that adds this runbook. The `publish` job pushes
-   `ghcr.io/tdshaw2000/timer-app-pr-tracker:main`. The `deploy` job that follows will fail at
-   the image pull, because a new package starts private. That is expected.
 
 6. **Make the image public**, so the VM needs no credentials. On GitHub open your profile's
    *Packages*, then *timer-app-pr-tracker*, then *Package settings*, then **Change visibility**,
