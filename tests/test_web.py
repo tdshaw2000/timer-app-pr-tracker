@@ -51,3 +51,22 @@ def test_healthz_accepts_only_get_and_head(client):
     response = client.post("/healthz")
 
     assert response.status_code == 405
+
+
+@pytest.mark.parametrize(
+    "path", ["/", "/static/styles.css", "/static/js/app.js", "/static/themes/dos/theme.css"]
+)
+def test_pages_and_static_files_are_revalidated_so_a_deploy_never_mixes_old_and_new(client, path):
+    response = client.get(path)
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-cache"
+    assert response.headers["etag"]
+
+
+def test_a_revalidating_browser_gets_a_cheap_304_for_an_unchanged_file(client):
+    etag = client.get("/static/styles.css").headers["etag"]
+
+    response = client.get("/static/styles.css", headers={"If-None-Match": etag})
+
+    assert response.status_code == 304
