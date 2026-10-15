@@ -1,6 +1,9 @@
 // Personal-record progression: for a given average size, the points where a new best was set.
 // A solve is { dateMs, timeMs }, with timeMs null for a DNF, which counts as the worst result.
 // An average drops 5% of its solves (rounded up) from each end and takes the mean of the rest.
+// Results are truncated to hundredths, never rounded, and a record has to beat every earlier
+// truncated result, so a tie is not a record. The solves passed in should all be one puzzle and
+// category.
 
 export const AVERAGE_SIZES = [1, 5, 12, 50, 100, 1000];
 
@@ -38,6 +41,10 @@ function trimmedMean(sorted, trim) {
   return Number.isFinite(sum) ? sum / (sorted.length - 2 * trim) : null;
 }
 
+function truncateToHundredths(ms) {
+  return Math.floor(ms / 10) * 10;
+}
+
 export function prProgression(solves, size) {
   const ordered = [...solves].sort((a, b) => a.dateMs - b.dateMs);
   const trim = trimCount(size);
@@ -51,7 +58,8 @@ export function prProgression(solves, size) {
     if (window.length > size) removeSorted(window, values[i - size]);
     if (window.length < size) continue;
 
-    const value = trimmedMean(window, trim);
+    const mean = trimmedMean(window, trim);
+    const value = mean === null ? null : truncateToHundredths(mean);
     if (value !== null && value < best) {
       best = value;
       points.push({ solveNumber: i + 1, dateMs: ordered[i].dateMs, valueMs: value });
