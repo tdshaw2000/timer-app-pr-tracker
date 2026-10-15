@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseCubicTimer } from "../../timer_app_pr_tracker/static/js/cubic-timer.js";
 
 const HEADER = '"Puzzle";"Category";"Time(millis)";"Date(millis)";"Scramble";"Penalty";"Comment"';
-const row = (...fields) => fields.map((f) => `"${f}"`).join(";");
+const row = (...fields) => fields.map((f) => `"${f.replaceAll('"', '""')}"`).join(";");
 
 describe("parseCubicTimer", () => {
   it("reads each row into a raw solve, with numbers as numbers", () => {
@@ -53,6 +53,19 @@ describe("parseCubicTimer", () => {
     ].join("\n");
 
     expect(parseCubicTimer(text).solves[0].comment).toBe('popped; "lol"');
+  });
+
+  it("reads a comment that runs over several lines, and counts lines past it correctly", () => {
+    const text = [
+      HEADER,
+      row("333", "Normal", "20500", "1766653366566", "R", "0", "first line\nsecond line"),
+      row("333", "Normal", "fast", "1766653466566", "R", "0", ""),
+    ].join("\n");
+
+    const { solves, skipped } = parseCubicTimer(text);
+
+    expect(solves[0].comment).toBe("first line\nsecond line");
+    expect(skipped.map((s) => s.line)).toEqual([4]);
   });
 
   it("gives no solves for a file with only the header", () => {
