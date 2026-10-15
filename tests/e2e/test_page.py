@@ -197,3 +197,36 @@ def test_a_worker_that_fails_gives_a_message_instead_of_reading_forever(page):
     )
 
     assert page.locator("#results").is_hidden()
+
+
+def cstimer_export():
+
+    def solves(times, start):
+        return [[[0, t], "R U", "", start + i] for i, t in enumerate(times)]
+
+    sessions = {
+        "session1": solves([10000, 9000, 9500, 8000, 8500, 8200], 1_791_966_000),
+        "session2": solves([4000, 3500], 1_791_967_000),
+        "properties": {
+            "sessionData": json.dumps({"1": {"opt": {}}, "2": {"opt": {"scrType": "222so"}}})
+        },
+    }
+    sessions["session1"].append([[0, "fast"], "R", "", 1_791_966_100])
+    return json.dumps(sessions).encode()
+
+
+def test_a_csTimer_export_is_read_too(page):
+    upload(page, cstimer_export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    assert page.locator("#status").inner_text() == "Read 8 solves from export.txt."
+    assert page.locator("#puzzle option").all_inner_texts() == ["3x3 (6 solves)", "2x2 (2 solves)"]
+    assert [p["y"] for p in chart_points(page)[0]["points"]] == [10, 9, 8]
+    assert "session 1, solve 7" in page.locator("#skipped").inner_text()
+
+
+def test_the_upload_says_both_formats_are_accepted(page):
+    page.goto(page.base_url)
+
+    assert "csTimer" in page.locator("label.upload").inner_text()
+    assert "Cubic Timer" in page.locator("label.upload").inner_text()
