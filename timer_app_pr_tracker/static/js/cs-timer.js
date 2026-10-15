@@ -24,7 +24,7 @@ const EVENTS = {
 };
 
 function eventFor(scrType) {
-  if (scrType === undefined) return EVENTS[333];
+  if (!scrType) return EVENTS[333];
   return Object.hasOwn(EVENTS, scrType) ? EVENTS[scrType] : [String(scrType), "Normal"];
 }
 
