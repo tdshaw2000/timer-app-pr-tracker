@@ -4,12 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Timer App PR Tracker</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
   <main>
     <h1>Timer App PR Tracker</h1>
-    <p>See your personal-record progression from a speedcubing timer export. Coming soon.</p>
+    <p>
+      See how your personal records progressed, from a speedcubing timer export. Your file is
+      read in this browser and never uploaded.
+    </p>
+
+    <label class="upload">
+      Timer export (Cubic Timer)
+      <input type="file" id="file">
+    </label>
+    <p id="status" role="status"></p>
+    <p id="skipped" role="status" hidden></p>
+
+    <section id="results" hidden>
+      <div class="controls">
+        <label>Puzzle <select id="puzzle"></select></label>
+        <fieldset>
+          <legend>X axis</legend>
+          <label><input type="radio" name="axis" value="solve" checked> Solve number</label>
+          <label><input type="radio" name="axis" value="date"> Date</label>
+        </fieldset>
+      </div>
+      <div id="charts"></div>
+    </section>
   </main>
+
+  <script src="/static/vendor/chart.umd.js"></script>
+  <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>

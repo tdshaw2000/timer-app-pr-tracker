@@ -28,6 +28,23 @@ describe("parseCubicTimer", () => {
     ]);
   });
 
+  it("skips a date beyond what a calendar can show, so the page never has to format it", () => {
+    const text = [
+      HEADER,
+      row("333", "Normal", "20500", "9000000000000000", "R", "0", ""),
+      row("333", "Normal", "20500", "8640000000000000", "R", "0", ""),
+      row("333", "Normal", "20500", "8640000000000001", "R", "0", ""),
+    ].join("\n");
+
+    const { solves, skipped } = parseCubicTimer(text);
+
+    expect(solves.map((s) => s.line)).toEqual([3]);
+    expect(skipped).toEqual([
+      { line: 2, reason: expect.stringMatching(/date/i) },
+      { line: 4, reason: expect.stringMatching(/date/i) },
+    ]);
+  });
+
   it("keeps the penalty code as stored, leaving its meaning to the caller", () => {
     const text = [
       HEADER,

@@ -6,6 +6,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "chart.js": "4.5.1",
     "vitest": "5.0.4"
   }
 }

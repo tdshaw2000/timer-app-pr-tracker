@@ -62,6 +62,9 @@ function readRows(text) {
   return { rows, unterminatedQuoteLine: null };
 }
 
+// The latest instant a JavaScript Date can hold; the page formats every date it plots.
+const MAX_DATE_MS = 8.64e15;
+
 function toInteger(value) {
   const number = /^\d+$/.test(value) ? Number(value) : NaN;
   return Number.isSafeInteger(number) ? number : null;
@@ -76,6 +79,7 @@ function readSolve(fields, line) {
   if (timeMs === null) return { reason: `time is not a whole number of milliseconds: "${time}"` };
   const dateMs = toInteger(date);
   if (dateMs === null) return { reason: `date is not a whole number of milliseconds: "${date}"` };
+  if (dateMs > MAX_DATE_MS) return { reason: `date is beyond the calendar's range: "${date}"` };
   const penaltyCode = toInteger(penalty);
   if (penaltyCode === null) return { reason: `penalty is not a number: "${penalty}"` };
   return {
