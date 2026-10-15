@@ -1,6 +1,6 @@
 // Samples are invented; real exports are the owner's personal data and stay out of the repo.
 import { describe, expect, it } from "vitest";
-import { parseCubicTimer } from "../../timer_app_pr_tracker/static/js/cubic-timer.js";
+import { parseCubicTimer, normaliseCubicSolve } from "../../timer_app_pr_tracker/static/js/cubic-timer.js";
 
 const HEADER = '"Puzzle";"Category";"Time(millis)";"Date(millis)";"Scramble";"Penalty";"Comment"';
 const row = (...fields) => fields.map((f) => `"${f.replaceAll('"', '""')}"`).join(";");
@@ -117,5 +117,45 @@ describe("parseCubicTimer", () => {
 
     expect(solves).toEqual([]);
     expect(skipped).toEqual([{ line: 2, reason: expect.stringMatching(/time/i) }]);
+  });
+});
+
+describe("normaliseCubicSolve", () => {
+  const raw = (penaltyCode, timeMs = 18791) => ({
+    puzzle: "333",
+    category: "Normal",
+    timeMs,
+    dateMs: 1766653366566,
+    scramble: "R U R'",
+    penaltyCode,
+    comment: "private note",
+  });
+
+  it("keeps a clean solve's time and drops the scramble and comment", () => {
+    expect(normaliseCubicSolve(raw(0))).toEqual({
+      puzzle: "333",
+      category: "Normal",
+      dateMs: 1766653366566,
+      timeMs: 18791,
+      penalty: null,
+    });
+  });
+
+  it("reads code 1 as +2, whose stored time already includes the 2 seconds", () => {
+    expect(normaliseCubicSolve(raw(1))).toMatchObject({ timeMs: 18791, penalty: "+2" });
+  });
+
+  it("adds the 2 seconds for +2 when the caller says the stored time leaves them out", () => {
+    const solve = normaliseCubicSolve(raw(1), { plusTwoIncluded: false });
+
+    expect(solve).toMatchObject({ timeMs: 20791, penalty: "+2" });
+  });
+
+  it("reads code 2 as a DNF with no time", () => {
+    expect(normaliseCubicSolve(raw(2))).toMatchObject({ timeMs: null, penalty: "DNF" });
+  });
+
+  it("refuses a penalty code it does not know", () => {
+    expect(() => normaliseCubicSolve(raw(3))).toThrow(/penalty code 3/);
   });
 });
