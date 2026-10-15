@@ -1,6 +1,6 @@
 // Samples are invented; real exports are the owner's personal data and stay out of the repo.
 import { describe, expect, it } from "vitest";
-import { parseCubicTimer, normaliseCubicSolve } from "../../timer_app_pr_tracker/static/js/cubic-timer.js";
+import { importCubicTimer, normaliseCubicSolve, parseCubicTimer } from "../../timer_app_pr_tracker/static/js/cubic-timer.js";
 
 const HEADER = '"Puzzle";"Category";"Time(millis)";"Date(millis)";"Scramble";"Penalty";"Comment"';
 const row = (...fields) => fields.map((f) => `"${f.replaceAll('"', '""')}"`).join(";");
@@ -23,6 +23,7 @@ describe("parseCubicTimer", () => {
         scramble: "R U R'",
         penaltyCode: 0,
         comment: "",
+        line: 2,
       },
     ]);
   });
@@ -157,5 +158,62 @@ describe("normaliseCubicSolve", () => {
 
   it("refuses a penalty code it does not know", () => {
     expect(() => normaliseCubicSolve(raw(3))).toThrow(/penalty code 3/);
+  });
+});
+
+describe("importCubicTimer", () => {
+  const file = (...rows) => [HEADER, ...rows].join("\n");
+
+  it("gives normalised solves in file order", () => {
+    const { solves, skipped } = importCubicTimer(
+      file(
+        row("333", "Normal", "20500", "1766653366566", "R", "0", "note"),
+        row("444", "Normal", "99000", "1766653466566", "R", "2", ""),
+      ),
+    );
+
+    expect(skipped).toEqual([]);
+    expect(solves).toEqual([
+      { puzzle: "333", category: "Normal", dateMs: 1766653366566, timeMs: 20500, penalty: null },
+      { puzzle: "444", category: "Normal", dateMs: 1766653466566, timeMs: null, penalty: "DNF" },
+    ]);
+  });
+
+  it("skips a row with an unknown penalty code and says which line", () => {
+    const { solves, skipped } = importCubicTimer(
+      file(
+        row("333", "Normal", "20500", "1766653366566", "R", "0", ""),
+        row("333", "Normal", "21000", "1766653466566", "R", "7", ""),
+      ),
+    );
+
+    expect(solves).toHaveLength(1);
+    expect(skipped).toEqual([{ line: 3, reason: expect.stringMatching(/penalty code 7/) }]);
+  });
+
+  it("reports rows the parser could not read as well", () => {
+    const { solves, skipped } = importCubicTimer(
+      file(row("333", "Normal", "fast", "1766653366566", "R", "0", "")),
+    );
+
+    expect(solves).toEqual([]);
+    expect(skipped).toEqual([{ line: 2, reason: expect.stringMatching(/time/i) }]);
+  });
+
+  it("lists skipped rows in file order, whichever kind of problem each one has", () => {
+    const { skipped } = importCubicTimer(
+      file(
+        row("333", "Normal", "21000", "1766653366566", "R", "7", ""),
+        row("333", "Normal", "fast", "1766653466566", "R", "0", ""),
+        row("333", "Normal", "20500", "1766653566566", "R", "0", ""),
+        '"333";"Normal";"19000";"1766653666566";"R";"0";"oops',
+      ),
+    );
+
+    expect(skipped.map((s) => s.line)).toEqual([2, 3, 5]);
+  });
+
+  it("rejects a file that is not a Cubic Timer export", () => {
+    expect(() => importCubicTimer("nope")).toThrow(/Cubic Timer/);
   });
 });
