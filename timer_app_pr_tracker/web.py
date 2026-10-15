@@ -10,6 +10,18 @@ STATIC_DIRECTORY = Path(__file__).parent / "static"
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
+# Without this a browser may keep an old styles.css or app.js for days beside a new index.html
+# (they have no version in their names), so a deploy would show a half-old page. "no-cache"
+# means check with the server every time; an unchanged file costs only a 304.
+REVALIDATE = {"Cache-Control": "no-cache"}
+
+
+class RevalidatedStaticFiles(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers.update(REVALIDATE)
+        return response
+
 
 @app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
@@ -18,7 +30,7 @@ def healthz():
 
 @app.get("/")
 def home():
-    return FileResponse(STATIC_DIRECTORY / "index.html")
+    return FileResponse(STATIC_DIRECTORY / "index.html", headers=REVALIDATE)
 
 
-app.mount("/static", StaticFiles(directory=STATIC_DIRECTORY), name="static")
+app.mount("/static", RevalidatedStaticFiles(directory=STATIC_DIRECTORY), name="static")
