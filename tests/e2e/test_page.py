@@ -112,3 +112,21 @@ def test_the_file_never_leaves_the_browser(page):
     assert {method for method, _ in requests} == {"GET"}
     assert all(url.startswith(page.base_url) for _, url in requests), json.dumps(requests)
 
+
+def test_the_page_loads_and_charts_with_no_failed_requests_or_script_errors(page):
+    failures = []
+    page.on(
+        "response",
+        lambda response: failures.append(response.url) if response.status >= 400 else None,
+    )
+    page.on("pageerror", lambda error: failures.append(str(error)))
+    page.on(
+        "console",
+        lambda message: failures.append(message.text) if message.type == "error" else None,
+    )
+
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+    page.wait_for_load_state("networkidle")
+
+    assert failures == []
