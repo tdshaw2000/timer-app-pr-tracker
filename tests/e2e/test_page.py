@@ -354,3 +354,18 @@ def test_chart_text_and_font_follow_the_skin(page):
     assert drawn["text"]
     assert drawn["tick"] == drawn["text"]
     assert drawn["family"] == drawn["font"]
+
+
+def test_each_chart_title_sits_above_its_graph(page):
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    boxes = page.evaluate(
+        """() => [...document.querySelectorAll('#charts figure')].map((figure) => ({
+            title: figure.querySelector('figcaption').getBoundingClientRect().bottom,
+            graph: figure.querySelector('canvas').getBoundingClientRect().top,
+        }))"""
+    )
+
+    assert boxes
+    assert all(box["title"] <= box["graph"] for box in boxes)
