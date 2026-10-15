@@ -398,3 +398,33 @@ def test_the_title_link_looks_like_the_plain_title(page):
     )
 
     assert style["link"] == style["heading"]
+
+
+def chart_x_max(page):
+    return page.evaluate(
+        "() => [...document.querySelectorAll('#charts canvas')]"
+        ".map((canvas) => Chart.getChart(canvas).scales.x.max)"
+    )
+
+
+def test_every_date_chart_runs_to_the_end_of_today_however_old_the_solves_are(page):
+    page.clock.set_fixed_time("2026-10-15T09:00:00")
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    page.get_by_label("Date").check()
+
+    end_of_today = page.evaluate("() => new Date(2026, 9, 16).getTime() - 1")
+    assert chart_x_max(page) == [end_of_today, end_of_today]
+    page.select_option("#puzzle", label="2x2 (3 solves)")
+    assert chart_x_max(page) == [end_of_today, end_of_today]
+    # The lines still stop at their last record.
+    assert [p["x"] for p in chart_points(page)[0]["points"]] == [START + 10_000, START + 11_000]
+
+
+def test_solve_number_charts_do_not_run_to_today(page):
+    page.clock.set_fixed_time("2026-10-15T09:00:00")
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    assert chart_x_max(page)[0] < 100
