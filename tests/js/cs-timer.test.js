@@ -11,7 +11,7 @@ function exportOf(sessions, types = {}) {
   const sessionData = {};
   for (let n = 1; n <= 3; n++) {
     file[`session${n}`] = sessions[n] ?? [];
-    sessionData[n] = { name: n, opt: types[n] ? { scrType: types[n] } : {}, rank: n };
+    sessionData[n] = { name: n, opt: n in types ? { scrType: types[n] } : {}, rank: n };
   }
   file.properties = { sessionData: JSON.stringify(sessionData) };
   return JSON.stringify(file);
@@ -39,6 +39,17 @@ describe("importCsTimer", () => {
       ["pyra", "Normal"],
       ["333", "Normal"],
       ["222", "Normal"],
+    ]);
+  });
+
+  it("treats an empty or null scramble type as 3x3, as csTimer does", () => {
+    const { solves } = importCsTimer(
+      exportOf({ 1: [solve(9000, 1791966730)], 2: [solve(9000, 1791966740)] }, { 1: "", 2: null }),
+    );
+
+    expect(solves.map((s) => [s.puzzle, s.category])).toEqual([
+      ["333", "Normal"],
+      ["333", "Normal"],
     ]);
   });
 
