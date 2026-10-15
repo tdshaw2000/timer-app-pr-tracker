@@ -345,7 +345,7 @@ def test_chart_text_and_font_follow_the_skin(page):
             return {
                 tick: chart.scales.x.options.ticks.color,
                 text: root.getPropertyValue('--chart-text').trim(),
-                family: chart.scales.x.options.ticks.font.family,
+                family: chart.options.font.family,
                 font: getComputedStyle(document.body).fontFamily,
             };
         }"""

@@ -1,0 +1,73 @@
+/* "Mario" skin: a late-90s 3D-platformer feel from CSS alone. Sky and clouds, a checkered grassy
+   hill, a chunky title and dark rounded dialog boxes. The title font is Luckiest Guy (OFL). */
+@font-face {
+  font-family: "Luckiest Guy";
+  src: url("fonts/luckiest-guy.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --font: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --display: "Luckiest Guy", "Arial Black", Impact, sans-serif;
+  --ink: #ffffff;
+  --muted: #b9c6ff;
+  --line: #fdfdfd;
+  --accent: #ffd21f;
+  --page: #3aa0ff;
+  --card: rgba(18, 24, 64, 0.96);
+  --field: #ffffff;
+  --radius: 14px;
+  --chart-line: #ffd21f;
+  --chart-text: #ffffff;
+  --chart-grid: #3a4a9a;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 90px 34px at 18% 14%, #fff 60%, transparent 62%),
+    radial-gradient(ellipse 110px 38px at 78% 22%, #fff 60%, transparent 62%),
+    linear-gradient(#3aa0ff, #bfe8ff 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: -10%;
+  right: -10%;
+  bottom: -12vh;
+  height: 34vh;
+  z-index: -1;
+  border-radius: 50% 50% 0 0;
+  background: repeating-conic-gradient(#3fbf3f 0 25%, #2e9a2e 0 50%) 0 0 / 56px 56px;
+  box-shadow: inset 0 10px 0 rgba(255, 255, 255, 0.18);
+}
+
+.site-header h1 {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #ffd21f;
+  -webkit-text-stroke: 2px #1a1030;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #1a1030;
+}
+
+body > main > p,
+.upload,
+#status,
+#skipped,
+.controls {
+  color: #1a1030;
+}
+
+figure,
+.skin-menu {
+  border: 3px solid #fdfdfd;
+}
+
+select,
+input[type="file"] {
+  color: #1a1030;
+}

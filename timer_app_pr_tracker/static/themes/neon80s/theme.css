@@ -1,0 +1,70 @@
+/* "VHS" skin: an 80s night drive from CSS alone. A striped synthwave sun over a glowing
+   perspective grid and neon lettering. Fonts: Monoton, Orbitron and Share Tech Mono (OFL). */
+@font-face {
+  font-family: "Monoton";
+  src: url("fonts/monoton.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Orbitron";
+  src: url("fonts/orbitron.woff2") format("woff2");
+  font-weight: 400 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Share Tech Mono";
+  src: url("fonts/sharetechmono.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --font: "Share Tech Mono", ui-monospace, "Courier New", monospace;
+  --display: "Monoton", "Orbitron", Impact, sans-serif;
+  --ink: #f4ecff;
+  --muted: #b7a5e0;
+  --line: #ff2fb4;
+  --accent: #2ff3ff;
+  --page: #0b0420;
+  --card: rgba(12, 5, 34, 0.78);
+  --field: #1d0845;
+  --radius: 4px;
+  --chart-line: #ff2fb4;
+  --chart-text: #f4ecff;
+  --chart-grid: #5a0f6e;
+}
+
+body {
+  font-size: 17px;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 120% 40% at 50% 66%, rgba(255, 47, 180, 0.35), transparent 70%),
+    linear-gradient(#0b0420 0%, #1d0845 45%, #5a0f6e 66%, #0b0420 66.2%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 34vh;
+  width: 36vmin;
+  height: 36vmin;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  border-radius: 50%;
+  background: repeating-linear-gradient(#ffe45c 0 14%, #ff8a2a 14% 24%, transparent 24% 28%);
+  opacity: 0.85;
+}
+
+.site-header h1 {
+  font-weight: 400;
+  color: #2ff3ff;
+  text-shadow: 0 0 8px #2ff3ff, 0 0 18px #ff2fb4;
+}
+
+figure,
+.skin-menu {
+  border: 2px solid #ff2fb4;
+  box-shadow: 0 0 12px rgba(255, 47, 180, 0.6);
+}

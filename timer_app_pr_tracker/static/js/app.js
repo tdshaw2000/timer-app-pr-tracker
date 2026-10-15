@@ -25,7 +25,19 @@ function describe(point, axis) {
   return axis === "date" ? `on ${formatDay(point.x)}` : `at solve ${point.x}`;
 }
 
-function drawChart(series, axis) {
+// The chart colours and font come from the skin's custom properties (see themes/*/theme.css).
+function skinColours() {
+  const style = getComputedStyle(document.documentElement);
+  const read = (name) => style.getPropertyValue(name).trim();
+  return {
+    line: read("--chart-line"),
+    text: read("--chart-text"),
+    grid: read("--chart-grid"),
+    font: getComputedStyle(document.body).fontFamily,
+  };
+}
+
+function drawChart(series, axis, colours) {
   const figure = document.createElement("figure");
   const box = document.createElement("div");
   box.className = "chart";
@@ -46,8 +58,8 @@ function drawChart(series, axis) {
             label: series.label,
             data: series.points,
             stepped: "after",
-            borderColor: "#2563eb",
-            backgroundColor: "#2563eb",
+            borderColor: colours.line,
+            backgroundColor: colours.line,
             borderWidth: 2,
             pointRadius: 3,
           },
@@ -70,10 +82,12 @@ function drawChart(series, axis) {
             type: "linear",
             title: { display: true, text: axis === "date" ? "Date" : "Solve number" },
             ticks: { callback: (value) => (axis === "date" ? formatDay(value) : value) },
+            grid: { color: colours.grid },
           },
           y: {
             title: { display: true, text: "Time" },
             ticks: { callback: (value) => formatTime(value) },
+            grid: { color: colours.grid },
           },
         },
       },
@@ -95,7 +109,10 @@ function showCharts() {
     chartsBox.append(none);
     return;
   }
-  for (const series of lines) drawChart(series, axis);
+  const colours = skinColours();
+  Chart.defaults.color = colours.text;
+  Chart.defaults.font.family = colours.font;
+  for (const series of lines) drawChart(series, axis, colours);
 }
 
 function showResults({ entries: found, skipped }, fileName) {
@@ -148,3 +165,8 @@ puzzleSelect.addEventListener("change", showCharts);
 for (const radio of document.querySelectorAll('input[name="axis"]')) {
   radio.addEventListener("change", showCharts);
 }
+
+// A new skin changes the colours, which Chart.js won't pick up by itself.
+document.addEventListener("skinchange", () => {
+  if (entries.length > 0) showCharts();
+});
