@@ -42,6 +42,14 @@ describe("groupByPuzzle", () => {
     expect(groupByPuzzle([solve("megaminx", "Normal")])[0].label).toBe("megaminx");
   });
 
+  it("uses a puzzle's stored name as is, even if it matches a built-in object property", () => {
+    const labels = groupByPuzzle([solve("constructor", "Normal"), solve("toString", "Normal")])
+      .map((e) => e.label)
+      .sort();
+
+    expect(labels).toEqual(["constructor", "toString"]);
+  });
+
   it("lists the entry with the most solves first, then by name", () => {
     const entries = groupByPuzzle([
       solve("222", "Normal"),
