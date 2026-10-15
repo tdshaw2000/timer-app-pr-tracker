@@ -89,7 +89,7 @@ def test_rows_that_were_left_out_are_listed_as_plain_text(page):
 
     skipped = page.locator("#skipped")
 
-    assert "1 row was left out: line 15" in skipped.inner_text()
+    assert "1 row was left out: line 13" in skipped.inner_text()
     assert "<b>oops</b>" in skipped.inner_text()
     assert skipped.locator("b").count() == 0
 
@@ -111,3 +111,4 @@ def test_the_file_never_leaves_the_browser(page):
 
     assert {method for method, _ in requests} == {"GET"}
     assert all(url.startswith(page.base_url) for _, url in requests), json.dumps(requests)
+
