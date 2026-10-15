@@ -34,7 +34,7 @@ function drawChart(series, axis) {
   const caption = document.createElement("figcaption");
   const best = series.points.at(-1);
   caption.textContent = `${series.label}: best ${formatTime(best.y)} (${describe(best, axis)})`;
-  figure.append(box, caption);
+  figure.append(caption, box);
   chartsBox.append(figure);
 
   charts.push(
