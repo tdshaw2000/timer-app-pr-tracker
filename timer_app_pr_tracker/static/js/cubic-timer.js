@@ -67,7 +67,7 @@ function toInteger(value) {
   return Number.isSafeInteger(number) ? number : null;
 }
 
-function readSolve(fields) {
+function readSolve(fields, line) {
   if (fields.length !== COLUMNS.length) {
     return { reason: `expected ${COLUMNS.length} fields, found ${fields.length}` };
   }
@@ -78,7 +78,9 @@ function readSolve(fields) {
   if (dateMs === null) return { reason: `date is not a whole number of milliseconds: "${date}"` };
   const penaltyCode = toInteger(penalty);
   if (penaltyCode === null) return { reason: `penalty is not a number: "${penalty}"` };
-  return { solve: { puzzle, category, timeMs, dateMs, scramble, penaltyCode, comment } };
+  return {
+    solve: { puzzle, category, timeMs, dateMs, scramble, penaltyCode, comment, line },
+  };
 }
 
 export function parseCubicTimer(text) {
@@ -91,7 +93,7 @@ export function parseCubicTimer(text) {
   const solves = [];
   const skipped = [];
   for (const { line, fields } of body) {
-    const { solve, reason } = readSolve(fields);
+    const { solve, reason } = readSolve(fields, line);
     if (solve) solves.push(solve);
     else skipped.push({ line, reason });
   }
@@ -121,4 +123,21 @@ export function normaliseCubicSolve(raw) {
     default:
       throw new RangeError(`Unknown penalty code ${penaltyCode}`);
   }
+}
+
+// Reads a whole Cubic Timer file into normalised solves in file order. Rows that cannot be read,
+// or that carry a penalty code we do not know, are left out and listed in `skipped`.
+export function importCubicTimer(text) {
+  const { solves: raw, skipped } = parseCubicTimer(text);
+  const solves = [];
+  for (const rawSolve of raw) {
+    try {
+      solves.push(normaliseCubicSolve(rawSolve));
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+      skipped.push({ line: rawSolve.line, reason: error.message });
+    }
+  }
+  skipped.sort((a, b) => a.line - b.line);
+  return { solves, skipped };
 }
