@@ -26,6 +26,12 @@ def test_the_home_page_is_html_with_the_app_name(client):
     assert "<title>Timer App PR Tracker</title>" in response.text
 
 
+def test_the_page_title_in_the_header_links_to_the_site_root(client):
+    html = client.get("/").text
+
+    assert '<h1><a href="/" class="site-title">Timer App PR Tracker</a></h1>' in html
+
+
 def test_static_files_are_served(client):
     response = client.get("/static/styles.css")
 

@@ -369,3 +369,32 @@ def test_each_chart_title_sits_above_its_graph(page):
 
     assert boxes
     assert all(box["title"] <= box["graph"] for box in boxes)
+
+
+def test_clicking_the_title_resets_the_page_but_keeps_the_skin(page):
+    upload(page, export())
+    page.locator("#results").wait_for()
+    pick_skin(page, "DOS")
+
+    page.locator("h1 a").click()
+    page.wait_for_load_state()
+
+    assert page.url.rstrip("/") == page.base_url.rstrip("/")
+    assert page.locator("#results").is_hidden()
+    assert page.locator("#charts canvas").count() == 0
+    assert page.locator("link#skin-css").get_attribute("href") == "/static/themes/dos/theme.css"
+
+
+def test_the_title_link_looks_like_the_plain_title(page):
+    page.goto(page.base_url)
+
+    style = page.evaluate(
+        """() => {
+            const link = getComputedStyle(document.querySelector('h1 a'));
+            const heading = getComputedStyle(document.querySelector('h1'));
+            return { link: [link.color, link.textDecorationLine],
+                     heading: [heading.color, 'none'] };
+        }"""
+    )
+
+    assert style["link"] == style["heading"]
