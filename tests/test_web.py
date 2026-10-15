@@ -37,3 +37,17 @@ def test_the_server_accepts_no_uploads(client):
     response = client.post("/", content=b"1.23")
 
     assert response.status_code == 405
+
+
+def test_healthz_answers_head_probes_with_200_and_no_body(client):
+    # Uptime monitors such as UptimeRobot probe with HEAD by default.
+    response = client.head("/healthz")
+
+    assert response.status_code == 200
+    assert response.content == b""
+
+
+def test_healthz_accepts_only_get_and_head(client):
+    response = client.post("/healthz")
+
+    assert response.status_code == 405

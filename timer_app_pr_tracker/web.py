@@ -11,7 +11,7 @@ STATIC_DIRECTORY = Path(__file__).parent / "static"
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
-@app.get("/healthz")
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
     return {"status": "ok"}
 
