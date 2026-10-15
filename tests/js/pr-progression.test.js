@@ -36,6 +36,22 @@ describe("prProgression of single solves", () => {
     expect(points.map((p) => p.solveNumber)).toEqual([2, 4]);
   });
 
+  it("truncates to hundredths, never rounds, and a tie after truncating is not a record", () => {
+    const points = prProgression(
+      [
+        { dateMs: 1000, timeMs: 10567 },
+        { dateMs: 2000, timeMs: 10561 },
+        { dateMs: 3000, timeMs: 10559 },
+      ],
+      1,
+    );
+
+    expect(points.map((p) => [p.solveNumber, p.valueMs])).toEqual([
+      [1, 10560],
+      [3, 10550],
+    ]);
+  });
+
   it("gives nothing for no solves", () => {
     expect(prProgression([], 1)).toEqual([]);
   });
@@ -46,9 +62,21 @@ describe("prProgression of averages", () => {
     const points = prProgression(solvesFrom([10, 12, 11, 13, 9, 8, 20]), 5);
 
     expect(points.map((p) => p.solveNumber)).toEqual([5, 6]);
-    expect(points[0].valueMs).toBeCloseTo(11000);
-    expect(points[1].valueMs).toBeCloseTo((9000 + 11000 + 12000) / 3);
+    expect(points[0].valueMs).toBe(11000);
+    expect(points[1].valueMs).toBe(10660); // 10.6666... truncated to hundredths
     expect(points[1].dateMs).toBe(1_005_000);
+  });
+
+  it("truncates an average to hundredths, so a tie shown on screen is not a record", () => {
+    // Windows average 10666.67 ms and 10663.33 ms, which both show as 10.66.
+    const solves = [10000, 10000, 12000, 9000, 20000, 9990].map((timeMs, i) => ({
+      dateMs: (i + 1) * 1000,
+      timeMs,
+    }));
+
+    const points = prProgression(solves, 5);
+
+    expect(points).toEqual([{ solveNumber: 5, dateMs: 5000, valueMs: 10660 }]);
   });
 
   it("starts at the first full window", () => {
