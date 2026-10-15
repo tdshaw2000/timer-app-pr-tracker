@@ -44,7 +44,7 @@ describe("importCsTimer", () => {
 
   it("treats other 3x3 events as categories of 3x3, like Cubic Timer's own", () => {
     const { solves } = importCsTimer(
-      exportOf({ 1: [solve(30000, 1791966730)], 2: [solve(90000, 1791966740)] }, { 1: "333oh", 2: "333bf" }),
+      exportOf({ 1: [solve(30000, 1791966730)], 2: [solve(90000, 1791966740)] }, { 1: "333oh", 2: "333ni" }),
     );
 
     expect(solves.map((s) => [s.puzzle, s.category])).toEqual([
