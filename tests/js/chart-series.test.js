@@ -44,5 +44,6 @@ describe("chartSeries", () => {
 
   it("refuses an axis it does not know", () => {
     expect(() => chartSeries(solvesFrom([10]), "weeks")).toThrow(/axis/);
+    expect(() => chartSeries(solvesFrom([10]), "constructor")).toThrow(/axis/);
   });
 });
