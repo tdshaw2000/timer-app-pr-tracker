@@ -230,3 +230,18 @@ def test_the_upload_says_both_formats_are_accepted(page):
 
     assert "csTimer" in page.locator("label.upload").inner_text()
     assert "Cubic Timer" in page.locator("label.upload").inner_text()
+
+
+def test_each_chart_title_sits_above_its_graph(page):
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    boxes = page.evaluate(
+        """() => [...document.querySelectorAll('#charts figure')].map((figure) => ({
+            title: figure.querySelector('figcaption').getBoundingClientRect().bottom,
+            graph: figure.querySelector('canvas').getBoundingClientRect().top,
+        }))"""
+    )
+
+    assert boxes
+    assert all(box["title"] <= box["graph"] for box in boxes)
