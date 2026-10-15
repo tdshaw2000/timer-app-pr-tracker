@@ -13,9 +13,11 @@ function labelFor(size) {
 }
 
 export function chartSeries(solves, axis) {
-  const xOf = X_VALUE[axis];
-  if (!xOf) throw new RangeError(`Unknown axis "${axis}": use "solve" or "date"`);
+  if (!Object.hasOwn(X_VALUE, axis)) {
+    throw new RangeError(`Unknown axis "${axis}": use "solve" or "date"`);
+  }
 
+  const xOf = X_VALUE[axis];
   return AVERAGE_SIZES.flatMap((size) => {
     const points = prProgression(solves, size).map((point) => ({
       x: xOf(point),
