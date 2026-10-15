@@ -10,7 +10,7 @@ const NOT_AN_EXPORT = "This is not a csTimer export.";
 const EVENTS = {
   333: ["333", "Normal"],
   "333oh": ["333", "One-handed"],
-  "333bf": ["333", "Blindfolded"],
+  "333ni": ["333", "Blindfolded"],
   "222so": ["222", "Normal"],
   "444wca": ["444", "Normal"],
   "555wca": ["555", "Normal"],
