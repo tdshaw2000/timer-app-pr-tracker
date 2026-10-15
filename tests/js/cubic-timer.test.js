@@ -94,4 +94,28 @@ describe("parseCubicTimer", () => {
       { line: 4, reason: expect.stringMatching(/7 fields/) },
     ]);
   });
+
+  it("reports a quote that is never closed instead of swallowing the rows after it", () => {
+    const text = [
+      HEADER,
+      row("333", "Normal", "20500", "1766653366566", "R", "0", ""),
+      '"333";"Normal";"19000";"1766653466566";"R";"0";"oops',
+      row("333", "Normal", "18000", "1766653566566", "R", "0", ""),
+    ].join("\n");
+
+    const { solves, skipped } = parseCubicTimer(text);
+
+    expect(solves.map((s) => s.timeMs)).toEqual([20500]);
+    expect(skipped).toEqual([{ line: 3, reason: expect.stringMatching(/unterminated quote/i) }]);
+  });
+
+  it("skips a number too large to hold exactly", () => {
+    const text = [HEADER, row("333", "Normal", "99999999999999999999", "1766653366566", "R", "0", "")]
+      .join("\n");
+
+    const { solves, skipped } = parseCubicTimer(text);
+
+    expect(solves).toEqual([]);
+    expect(skipped).toEqual([{ line: 2, reason: expect.stringMatching(/time/i) }]);
+  });
 });
