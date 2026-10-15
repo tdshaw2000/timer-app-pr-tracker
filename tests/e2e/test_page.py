@@ -236,8 +236,14 @@ SKIN_LABELS = ["Minimal", "Dark", "DOS", "Mario", "Monkey", "VHS"]
 
 
 def pick_skin(page, label):
+    """Picks a skin and waits until its stylesheet is in and the page has been told."""
+    page.evaluate(
+        "() => { window.skinLoaded = new Promise("
+        "(done) => document.addEventListener('skinchange', done, { once: true })); }"
+    )
     page.locator(".skin-picker summary").click()
-    page.get_by_role("button", name=label, exact=True).click()
+    page.locator(".skin-option", has_text=label).click()
+    page.evaluate("() => window.skinLoaded")
 
 
 def chart_line_colour(page):
@@ -276,9 +282,9 @@ def test_an_unknown_saved_skin_falls_back_to_minimal(page):
 def test_each_skin_styles_the_page(page):
     page.goto(page.base_url)
     seen = set()
-    for label in SKIN_LABELS:
+    # Minimal is already showing, and picking it again loads nothing, so it comes last.
+    for label in [*SKIN_LABELS[1:], SKIN_LABELS[0]]:
         pick_skin(page, label)
-        page.wait_for_function("() => document.querySelector('link#skin-css').sheet !== null")
         seen.add(
             page.evaluate(
                 "() => [getComputedStyle(document.body).backgroundImage,"
@@ -312,7 +318,6 @@ def test_the_charts_follow_the_skin_and_redraw_when_it_changes(page):
 def test_charts_drawn_after_picking_a_skin_use_its_colours(page):
     page.goto(page.base_url)
     pick_skin(page, "Dark")
-    page.wait_for_function("() => document.querySelector('link#skin-css').sheet !== null")
     page.set_input_files(
         "#file", {"name": "export.txt", "mimeType": "text/plain", "buffer": export()}
     )
@@ -323,3 +328,29 @@ def test_charts_drawn_after_picking_a_skin_use_its_colours(page):
     )
     assert expected
     assert chart_line_colour(page) == expected
+
+
+def test_chart_text_and_font_follow_the_skin(page):
+    page.goto(page.base_url)
+    pick_skin(page, "DOS")
+    page.set_input_files(
+        "#file", {"name": "export.txt", "mimeType": "text/plain", "buffer": export()}
+    )
+    page.wait_for_selector("#results:not([hidden])")
+
+    drawn = page.evaluate(
+        """() => {
+            const chart = Chart.getChart(document.querySelector('canvas'));
+            const root = getComputedStyle(document.documentElement);
+            return {
+                tick: chart.scales.x.options.ticks.color,
+                text: root.getPropertyValue('--chart-text').trim(),
+                family: chart.scales.x.options.ticks.font.family,
+                font: getComputedStyle(document.body).fontFamily,
+            };
+        }"""
+    )
+
+    assert drawn["text"]
+    assert drawn["tick"] == drawn["text"]
+    assert drawn["family"] == drawn["font"]
