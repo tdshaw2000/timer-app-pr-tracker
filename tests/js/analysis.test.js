@@ -1,6 +1,6 @@
 // Samples are invented. See cubic-timer.test.js for the file layout.
 import { describe, expect, it } from "vitest";
-import { analyseCubicTimer } from "../../timer_app_pr_tracker/static/js/analysis.js";
+import { analyseCubicTimer, analyseExport } from "../../timer_app_pr_tracker/static/js/analysis.js";
 
 const HEADER = '"Puzzle";"Category";"Time(millis)";"Date(millis)";"Scramble";"Penalty";"Comment"';
 const row = (puzzle, category, timeMs, dateMs, penalty = 0) =>
@@ -47,5 +47,45 @@ describe("analyseCubicTimer", () => {
 
   it("rejects a file that is not a Cubic Timer export", () => {
     expect(() => analyseCubicTimer("hello")).toThrow(/Cubic Timer/);
+  });
+});
+
+describe("analyseExport", () => {
+  const cubic = [
+    HEADER,
+    row("333", "Normal", 10000, 1000),
+    row("222", "Normal", 4000, 3000),
+  ].join("\n");
+  const csTimer = JSON.stringify({
+    session1: [[[0, 8000], "R U", "", 1791966730]],
+    session2: [[[0, 17000], "R U", "", 1791966740], [[0, "fast"], "R", "", 1791966750]],
+    properties: { sessionData: JSON.stringify({ 1: { opt: { scrType: "pyrso" } }, 2: { opt: {} } }) },
+  });
+
+  it("reads a Cubic Timer file", () => {
+    expect(analyseExport(cubic)).toEqual(analyseCubicTimer(cubic));
+  });
+
+  it("reads a csTimer file, with the rows it left out named by session and solve", () => {
+    const { entries, skipped } = analyseExport(csTimer);
+
+    expect(entries.map((e) => [e.label, e.count])).toEqual([
+      ["3x3", 1],
+      ["Pyraminx", 1],
+    ]);
+    expect(skipped).toEqual([
+      { where: "session 2, solve 2", reason: expect.stringMatching(/time/i) },
+    ]);
+  });
+
+  it("tells the two formats apart even with a byte order mark or leading blank lines", () => {
+    expect(analyseExport(`\uFEFF\n  ${csTimer}`).entries).toHaveLength(2);
+    expect(analyseExport(`\uFEFF${cubic}`).entries).toHaveLength(2);
+  });
+
+  it("says which formats it knows when the file is neither", () => {
+    for (const text of ["hello", "", "[1, 2]", "Session;Time\n1;2"]) {
+      expect(() => analyseExport(text), text).toThrow(/Cubic Timer or csTimer/);
+    }
   });
 });
