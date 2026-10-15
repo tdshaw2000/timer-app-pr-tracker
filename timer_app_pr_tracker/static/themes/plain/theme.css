@@ -1,0 +1,16 @@
+/* "Minimal" skin: a clean, readable look. The default. */
+:root {
+  color-scheme: light;
+  --font: system-ui, sans-serif;
+  --ink: #1f2933;
+  --muted: #616e7c;
+  --line: #cbd2d9;
+  --accent: #2563eb;
+  --page: #f5f7fa;
+  --card: #ffffff;
+  --field: #ffffff;
+  --radius: 6px;
+  --chart-line: #2563eb;
+  --chart-text: #1f2933;
+  --chart-grid: #e4e7eb;
+}

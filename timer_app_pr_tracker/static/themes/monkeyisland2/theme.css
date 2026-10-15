@@ -1,0 +1,63 @@
+/* "Monkey" skin: an early-90s pirate point-and-click feel. The owner's pixel-art harbour at
+   night (harbour.webp, harbour-wide.webp for landscape screens) behind black verb-panel boxes
+   with violet pixel borders. The font is VT323 (OFL). */
+@font-face {
+  font-family: "VT323";
+  src: url("fonts/vt323.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --font: "VT323", "Courier New", monospace;
+  --harbour: url("harbour.webp");
+  --ink: #e6e0ff;
+  --muted: #a99be8;
+  --line: #8a7dff;
+  --accent: #ffd23f;
+  --page: #0b0b3c;
+  --card: rgba(7, 6, 26, 0.92);
+  --field: #f3e2b6;
+  --radius: 0;
+  --chart-line: #5ff2f2;
+  --chart-text: #e6e0ff;
+  --chart-grid: #4a3fb0;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  :root {
+    --harbour: url("harbour-wide.webp");
+  }
+}
+
+body {
+  font-size: 22px;
+  font-synthesis: none;
+  min-height: 100vh;
+  background: var(--harbour) center / cover fixed, #0b0b3c;
+}
+
+body > main > p,
+.upload,
+#status,
+#skipped,
+.controls {
+  background: rgba(7, 6, 26, 0.8);
+  padding: 0.25rem 0.5rem;
+}
+
+.site-header h1 {
+  font-weight: 400;
+  color: #ffd23f;
+  text-shadow: 2px 2px 0 #1a0a00;
+}
+
+select,
+input[type="file"] {
+  color: #3a1d08;
+}
+
+figure,
+.skin-menu {
+  border: 3px solid #8a7dff;
+}

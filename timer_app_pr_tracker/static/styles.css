@@ -1,11 +1,98 @@
-:root {
-  color-scheme: light dark;
+/* Layout only. Colours, fonts and decoration come from the chosen skin's theme.css
+   (themes/<skin>/theme.css), which sets the custom properties used here. */
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 body {
-  font-family: system-ui, sans-serif;
+  font: 16px/1.5 var(--font);
+  color: var(--ink);
+  background: var(--page);
   margin: 0;
   padding: 2rem 1rem;
+}
+
+.site-header {
+  position: relative;
+}
+
+.site-header h1 {
+  margin: 0 2.5rem 1rem 0;
+  font-family: var(--display, var(--font));
+}
+
+.skin-picker {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+}
+
+.skin-picker-toggle {
+  list-style: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.25rem;
+  color: var(--muted);
+}
+
+.skin-picker-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.skin-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  min-width: 9rem;
+  padding: 0.4rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.skin-menu-title {
+  margin: 0 0.4rem 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.skin-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--radius);
+}
+
+.skin-option[aria-current="true"] {
+  font-weight: 700;
+}
+
+.skin-option[aria-current="true"]::after {
+  content: " \2713";
+  color: var(--accent);
+}
+
+select,
+input[type="file"] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.3rem;
 }
 
 main {
@@ -43,6 +130,10 @@ main {
 
 figure {
   margin: 0;
+  padding: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 .chart {
