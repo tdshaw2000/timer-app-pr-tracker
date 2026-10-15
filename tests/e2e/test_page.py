@@ -130,3 +130,70 @@ def test_the_page_loads_and_charts_with_no_failed_requests_or_script_errors(page
     page.wait_for_load_state("networkidle")
 
     assert failures == []
+
+
+def test_choosing_a_second_file_while_the_first_is_still_being_read_shows_the_second(page):
+    page.add_init_script(
+        """
+        const read = File.prototype.text;
+        File.prototype.text = async function () {
+            if (this.name === 'slow.txt') await new Promise((done) => setTimeout(done, 1500));
+            return read.call(this);
+        };
+        """
+    )
+    page.goto(page.base_url)
+    page.set_input_files(
+        "#file", {"name": "slow.txt", "mimeType": "text/plain", "buffer": export()}
+    )
+    page.set_input_files(
+        "#file",
+        {
+            "name": "fast.txt",
+            "mimeType": "text/plain",
+            "buffer": export(row("222", "Normal", 3000, 40)),
+        },
+    )
+    page.wait_for_function("document.querySelector('#status').textContent.includes('fast.txt')")
+
+    page.wait_for_timeout(2500)
+
+    assert page.locator("#status").inner_text() == "Read 12 solves from fast.txt."
+    assert page.locator("#puzzle option").all_inner_texts()[1] == "2x2 (4 solves)"
+
+
+def test_a_puzzle_with_only_DNFs_says_it_has_no_records(page):
+    dnfs = [row("skewb", "Normal", 0, 30 + i, penalty="2") for i in range(3)]
+    upload(page, export(*dnfs))
+    page.wait_for_selector("#results:not([hidden])")
+
+    page.select_option("#puzzle", label="Skewb (3 solves)")
+
+    assert page.locator("#charts").inner_text() == "No records yet for this puzzle."
+    assert page.locator("#charts canvas").count() == 0
+
+
+def test_a_file_with_no_solves_says_so_and_shows_no_results(page):
+    upload(page, HEADER.encode())
+
+    page.wait_for_function("document.querySelector('#status').textContent.startsWith('Read')")
+
+    assert page.locator("#status").inner_text() == "Read 0 solves from export.txt."
+    assert page.locator("#results").is_hidden()
+
+
+def test_a_worker_that_fails_gives_a_message_instead_of_reading_forever(page):
+    page.route(
+        "**/js/worker.js",
+        lambda route: route.fulfill(
+            content_type="text/javascript",
+            body="self.onmessage = () => { throw new Error('boom'); };",
+        ),
+    )
+    upload(page, export())
+
+    page.wait_for_function(
+        "document.querySelector('#status').textContent.includes('Something went wrong')"
+    )
+
+    assert page.locator("#results").is_hidden()
