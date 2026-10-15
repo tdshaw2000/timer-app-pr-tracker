@@ -230,3 +230,96 @@ def test_the_upload_says_both_formats_are_accepted(page):
 
     assert "csTimer" in page.locator("label.upload").inner_text()
     assert "Cubic Timer" in page.locator("label.upload").inner_text()
+
+
+SKIN_LABELS = ["Minimal", "Dark", "DOS", "Mario", "Monkey", "VHS"]
+
+
+def pick_skin(page, label):
+    page.locator(".skin-picker summary").click()
+    page.get_by_role("button", name=label, exact=True).click()
+
+
+def chart_line_colour(page):
+    return page.evaluate(
+        "() => Chart.getChart(document.querySelector('canvas')).data.datasets[0].borderColor"
+    )
+
+
+def test_the_gear_menu_lists_the_skins_and_marks_the_current_one(page):
+    page.goto(page.base_url)
+    page.locator(".skin-picker summary").click()
+
+    assert page.locator(".skin-option").all_inner_texts() == SKIN_LABELS
+    assert page.locator('.skin-option[aria-current="true"]').inner_text() == "Minimal"
+
+
+def test_picking_a_skin_swaps_the_stylesheet_and_survives_a_reload(page):
+    page.goto(page.base_url)
+    pick_skin(page, "DOS")
+
+    assert page.locator("link#skin-css").get_attribute("href") == "/static/themes/dos/theme.css"
+    page.reload()
+    assert page.locator("link#skin-css").get_attribute("href") == "/static/themes/dos/theme.css"
+    page.locator(".skin-picker summary").click()
+    assert page.locator('.skin-option[aria-current="true"]').inner_text() == "DOS"
+
+
+def test_an_unknown_saved_skin_falls_back_to_minimal(page):
+    page.goto(page.base_url)
+    page.evaluate("() => localStorage.setItem('timer-pr-skin', 'nope')")
+    page.reload()
+
+    assert page.locator("link#skin-css").get_attribute("href") == "/static/themes/plain/theme.css"
+
+
+def test_each_skin_styles_the_page(page):
+    page.goto(page.base_url)
+    seen = set()
+    for label in SKIN_LABELS:
+        pick_skin(page, label)
+        page.wait_for_function("() => document.querySelector('link#skin-css').sheet !== null")
+        seen.add(
+            page.evaluate(
+                "() => [getComputedStyle(document.body).backgroundImage,"
+                " getComputedStyle(document.body).backgroundColor].join()"
+            )
+        )
+
+    assert len(seen) == len(SKIN_LABELS)
+
+
+def test_the_charts_follow_the_skin_and_redraw_when_it_changes(page):
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+    minimal = chart_line_colour(page)
+
+    pick_skin(page, "VHS")
+    page.wait_for_function(
+        "(old) => Chart.getChart(document.querySelector('canvas'))"
+        ".data.datasets[0].borderColor !== old",
+        arg=minimal,
+    )
+
+    expected = page.evaluate(
+        "() => getComputedStyle(document.documentElement).getPropertyValue('--chart-line').trim()"
+    )
+    assert expected
+    assert chart_line_colour(page) == expected
+    assert [line["label"] for line in chart_points(page)] == ["Single", "Ao5"]
+
+
+def test_charts_drawn_after_picking_a_skin_use_its_colours(page):
+    page.goto(page.base_url)
+    pick_skin(page, "Dark")
+    page.wait_for_function("() => document.querySelector('link#skin-css').sheet !== null")
+    page.set_input_files(
+        "#file", {"name": "export.txt", "mimeType": "text/plain", "buffer": export()}
+    )
+    page.wait_for_selector("#results:not([hidden])")
+
+    expected = page.evaluate(
+        "() => getComputedStyle(document.documentElement).getPropertyValue('--chart-line').trim()"
+    )
+    assert expected
+    assert chart_line_colour(page) == expected
