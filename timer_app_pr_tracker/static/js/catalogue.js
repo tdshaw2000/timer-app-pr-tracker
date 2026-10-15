@@ -10,7 +10,7 @@ const PUZZLE_NAMES = {
 };
 
 function labelFor(puzzle, category) {
-  const name = PUZZLE_NAMES[puzzle] ?? puzzle;
+  const name = Object.hasOwn(PUZZLE_NAMES, puzzle) ? PUZZLE_NAMES[puzzle] : puzzle;
   return category === "Normal" ? name : `${name} · ${category}`;
 }
 
