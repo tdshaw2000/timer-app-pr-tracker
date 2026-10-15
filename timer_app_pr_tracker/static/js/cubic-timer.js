@@ -106,16 +106,16 @@ export function parseCubicTimer(text) {
 
 // Turns a raw solve into the shape the statistics use. Code 1 is +2 and code 2 is DNF
 // (confirmed by the owner against the app). The stored time of a +2 solve already includes the
-// 2 seconds (owner's answer, 2026-10-15); pass { plusTwoIncluded: false } to add them instead.
-// A DNF has no time. The scramble and comment are dropped: nothing downstream needs them.
-export function normaliseCubicSolve(raw, { plusTwoIncluded = true } = {}) {
+// 2 seconds (owner's answer, 2026-10-15), so it is kept as stored. A DNF has no time. The scramble and comment are dropped: nothing
+// downstream needs them.
+export function normaliseCubicSolve(raw) {
   const { puzzle, category, dateMs, timeMs, penaltyCode } = raw;
   const base = { puzzle, category, dateMs };
   switch (penaltyCode) {
     case 0:
       return { ...base, timeMs, penalty: null };
     case 1:
-      return { ...base, timeMs: plusTwoIncluded ? timeMs : timeMs + 2000, penalty: "+2" };
+      return { ...base, timeMs, penalty: "+2" };
     case 2:
       return { ...base, timeMs: null, penalty: "DNF" };
     default:
