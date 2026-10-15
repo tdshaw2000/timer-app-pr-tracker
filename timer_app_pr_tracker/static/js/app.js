@@ -1,4 +1,5 @@
 // The page: read a file in a worker, then chart each puzzle's records. Nothing is sent anywhere.
+import { dateAxisEnd } from "./date-axis.js";
 import { formatDay, formatTime, skippedSummary } from "./format.js";
 
 const fileInput = document.getElementById("file");
@@ -80,6 +81,8 @@ function drawChart(series, axis, colours) {
         scales: {
           x: {
             type: "linear",
+            // Dates run to today even when the last record is old; the line itself stops at its last record.
+            max: axis === "date" ? dateAxisEnd(Date.now(), series.points.at(-1).x) : undefined,
             title: { display: true, text: axis === "date" ? "Date" : "Solve number" },
             ticks: { callback: (value) => (axis === "date" ? formatDay(value) : value) },
             grid: { color: colours.grid },

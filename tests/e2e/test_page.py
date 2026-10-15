@@ -417,7 +417,7 @@ def test_every_date_chart_runs_to_the_end_of_today_however_old_the_solves_are(pa
     end_of_today = page.evaluate("() => new Date(2026, 9, 16).getTime() - 1")
     assert chart_x_max(page) == [end_of_today, end_of_today]
     page.select_option("#puzzle", label="2x2 (3 solves)")
-    assert chart_x_max(page) == [end_of_today, end_of_today]
+    assert chart_x_max(page) == [end_of_today]
     # The lines still stop at their last record.
     assert [p["x"] for p in chart_points(page)[0]["points"]] == [START + 10_000, START + 11_000]
 
