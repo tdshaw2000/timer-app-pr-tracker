@@ -5,6 +5,12 @@ const PUZZLE_NAMES = {
   222: "2x2",
   333: "3x3",
   444: "4x4",
+  555: "5x5",
+  666: "6x6",
+  777: "7x7",
+  sq1: "Square-1",
+  clock: "Clock",
+  minx: "Megaminx",
   skewb: "Skewb",
   pyra: "Pyraminx",
 };

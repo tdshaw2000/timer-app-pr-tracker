@@ -38,6 +38,14 @@ describe("groupByPuzzle", () => {
     );
   });
 
+  it("names the other puzzles csTimer can hold", () => {
+    const puzzles = ["555", "666", "777", "sq1", "clock", "minx"];
+
+    const labels = groupByPuzzle(puzzles.map((p) => solve(p, "Normal"))).map((e) => e.label);
+
+    expect(labels.sort()).toEqual(["5x5", "6x6", "7x7", "Clock", "Megaminx", "Square-1"]);
+  });
+
   it("falls back to the stored name for a puzzle it does not know", () => {
     expect(groupByPuzzle([solve("megaminx", "Normal")])[0].label).toBe("megaminx");
   });

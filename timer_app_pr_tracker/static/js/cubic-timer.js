@@ -63,7 +63,7 @@ function readRows(text) {
 }
 
 // The latest instant a JavaScript Date can hold; the page formats every date it plots.
-const MAX_DATE_MS = 8.64e15;
+export const MAX_DATE_MS = 8.64e15;
 
 function toInteger(value) {
   const number = /^\d+$/.test(value) ? Number(value) : NaN;

@@ -32,7 +32,7 @@ export function skippedSummary(skipped) {
   const noun = skipped.length === 1 ? "row was" : "rows were";
   const listed = skipped
     .slice(0, LISTED)
-    .map(({ line, reason }) => `line ${line} (${reason})`)
+    .map(({ line, where = `line ${line}`, reason }) => `${where} (${reason})`)
     .join(", ");
   const more = skipped.length > LISTED ? ` and ${skipped.length - LISTED} more` : "";
   return `${skipped.length} ${noun} left out: ${listed}${more}`;
