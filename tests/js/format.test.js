@@ -48,6 +48,14 @@ describe("skippedSummary", () => {
     );
   });
 
+  it("names a row by where it is when it has no line number", () => {
+    const skipped = [{ where: "session 2, solve 4", reason: "time is not a number" }];
+
+    expect(skippedSummary(skipped)).toBe(
+      "1 row was left out: session 2, solve 4 (time is not a number)",
+    );
+  });
+
   it("uses the singular for one row", () => {
     expect(skippedSummary([{ line: 3, reason: "bad" }])).toBe("1 row was left out: line 3 (bad)");
   });
