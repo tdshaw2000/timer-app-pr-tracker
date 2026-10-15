@@ -145,10 +145,10 @@ describe("normaliseCubicSolve", () => {
     expect(normaliseCubicSolve(raw(1))).toMatchObject({ timeMs: 18791, penalty: "+2" });
   });
 
-  it("adds the 2 seconds for +2 when the caller says the stored time leaves them out", () => {
+  it("never adds the 2 seconds again, whatever options are passed", () => {
     const solve = normaliseCubicSolve(raw(1), { plusTwoIncluded: false });
 
-    expect(solve).toMatchObject({ timeMs: 20791, penalty: "+2" });
+    expect(solve).toMatchObject({ timeMs: 18791, penalty: "+2" });
   });
 
   it("reads code 2 as a DNF with no time", () => {
