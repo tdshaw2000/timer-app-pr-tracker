@@ -1,9 +1,9 @@
 // Reads the file off the page's thread, so a large export doesn't freeze the page.
-import { analyseCubicTimer } from "./analysis.js";
+import { analyseExport } from "./analysis.js";
 
 self.addEventListener("message", ({ data: { id, text } }) => {
   try {
-    self.postMessage({ id, analysis: analyseCubicTimer(text) });
+    self.postMessage({ id, analysis: analyseExport(text) });
   } catch (error) {
     self.postMessage({ id, error: error.message });
   }
