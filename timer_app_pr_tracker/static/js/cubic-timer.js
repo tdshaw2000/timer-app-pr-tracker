@@ -12,7 +12,9 @@ const COLUMNS = [
 ];
 
 // Splits text into rows of fields, honouring quotes ("" is a literal quote) so a quoted
-// field can hold semicolons. Each row keeps the line number it starts on.
+// field can hold semicolons. Each row keeps the line number it starts on. If a quote is still
+// open at the end, the row it left unfinished is dropped and the line that row began on is
+// returned.
 function readRows(text) {
   const rows = [];
   let fields = [];
@@ -55,12 +57,14 @@ function readRows(text) {
       field += c;
     }
   }
+  if (quoted) return { rows, unterminatedQuoteLine: rowLine };
   endRow();
-  return rows;
+  return { rows, unterminatedQuoteLine: null };
 }
 
 function toInteger(value) {
-  return /^\d+$/.test(value) ? Number(value) : null;
+  const number = /^\d+$/.test(value) ? Number(value) : NaN;
+  return Number.isSafeInteger(number) ? number : null;
 }
 
 function readSolve(fields) {
@@ -78,7 +82,7 @@ function readSolve(fields) {
 }
 
 export function parseCubicTimer(text) {
-  const rows = readRows(text.replace(/^﻿/, ""));
+  const { rows, unterminatedQuoteLine } = readRows(text.replace(/^\uFEFF/, ""));
   const [header, ...body] = rows;
   if (!header || header.fields.join(";") !== COLUMNS.join(";")) {
     throw new Error("This is not a Cubic Timer export: the header row is missing or different.");
@@ -90,6 +94,12 @@ export function parseCubicTimer(text) {
     const { solve, reason } = readSolve(fields);
     if (solve) solves.push(solve);
     else skipped.push({ line, reason });
+  }
+  if (unterminatedQuoteLine !== null) {
+    skipped.push({
+      line: unterminatedQuoteLine,
+      reason: "unterminated quote, the rest of the file was ignored",
+    });
   }
   return { solves, skipped };
 }
