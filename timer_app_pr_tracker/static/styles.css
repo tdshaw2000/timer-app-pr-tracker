@@ -25,6 +25,11 @@ body {
   font-family: var(--display, var(--font));
 }
 
+.site-title {
+  color: inherit;
+  text-decoration: none;
+}
+
 .skin-picker {
   position: absolute;
   top: 0;
