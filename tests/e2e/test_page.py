@@ -267,16 +267,16 @@ def test_csTimer_files_can_be_grouped_by_session_instead_of_puzzle(page):
     assert page.locator("#puzzle option").count() == 2
 
 
-def test_the_group_by_choice_does_not_apply_to_cubic_timer_files(page):
+def test_the_group_by_choice_is_hidden_for_cubic_timer_files(page):
     upload(page, export())
     page.wait_for_selector("#results:not([hidden])")
 
-    assert page.locator("#group-session").is_disabled()
-    assert "csTimer" in page.locator("#group-note").inner_text()
+    assert page.locator("#group-by").is_hidden()
+    assert page.locator("#group-note").count() == 0
     assert page.locator("#puzzle option").count() == 3
 
 
-def test_group_by_session_is_available_again_after_loading_a_csTimer_file(page):
+def test_the_group_by_choice_comes_back_after_loading_a_csTimer_file(page):
     upload(page, export())
     page.wait_for_selector("#results:not([hidden])")
     page.set_input_files(
@@ -286,8 +286,8 @@ def test_group_by_session_is_available_again_after_loading_a_csTimer_file(page):
         "document.querySelector('#status').textContent.includes('Read 6 solves from cs.txt')"
     )
 
+    assert page.locator("#group-by").is_visible()
     assert page.locator("#group-session").is_enabled()
-    assert page.locator("#group-note").is_hidden()
 
 
 def test_the_upload_says_both_formats_are_accepted(page):
