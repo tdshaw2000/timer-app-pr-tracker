@@ -11,7 +11,7 @@ const chartsBox = document.getElementById("charts");
 
 const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
 let latestRequest = 0;
-const groupNote = document.getElementById("group-note");
+const groupBy = document.getElementById("group-by");
 const groupSession = document.getElementById("group-session");
 const groupPuzzle = document.getElementById("group-puzzle");
 
@@ -141,8 +141,7 @@ function showResults(found, fileName) {
   analysis = found;
   const { skipped } = found;
   const hasSessions = found.sessionEntries !== null;
-  groupSession.disabled = !hasSessions;
-  groupNote.hidden = hasSessions;
+  groupBy.hidden = !hasSessions;
   groupPuzzle.checked = true;
   fillSelector();
   const total = entries.reduce((sum, entry) => sum + entry.count, 0);
