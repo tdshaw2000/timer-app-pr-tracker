@@ -82,8 +82,8 @@ describe("analyseExport", () => {
     const { sessionEntries } = analyseExport(csTimer);
 
     expect(sessionEntries.map((e) => [e.key, e.label, e.count])).toEqual([
-      ["session|1", "1 · Pyraminx", 1],
-      ["session|2", "2 · 3x3", 1],
+      ["session|1", "Session 1 · Pyraminx", 1],
+      ["session|2", "Session 2 · 3x3", 1],
     ]);
     expect(sessionEntries[0].series.solve[0].points).toEqual([{ x: 1, y: 8 }]);
   });

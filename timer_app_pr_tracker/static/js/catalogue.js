@@ -33,3 +33,19 @@ export function groupByPuzzle(solves) {
     (a, b) => b.solves.length - a.solves.length || a.label.localeCompare(b.label),
   );
 }
+
+// csTimer sessions, one entry each in session order, labelled with the session's name and its
+// puzzle (a session has one scramble type, so it has one puzzle).
+export function groupBySession(solves) {
+  const entries = new Map();
+  for (const solve of solves) {
+    if (!solve.session) continue;
+    const key = `session|${solve.session.number}`;
+    if (!entries.has(key)) {
+      const label = `${solve.session.name} · ${labelFor(solve.puzzle, solve.category)}`;
+      entries.set(key, { key, number: solve.session.number, label, solves: [] });
+    }
+    entries.get(key).solves.push(solve);
+  }
+  return [...entries.values()].sort((a, b) => a.number - b.number);
+}

@@ -282,7 +282,9 @@ def test_group_by_session_is_available_again_after_loading_a_csTimer_file(page):
     page.set_input_files(
         "#file", {"name": "cs.txt", "mimeType": "text/plain", "buffer": sessions_export()}
     )
-    page.wait_for_function("document.querySelector('#status').textContent.includes('cs.txt')")
+    page.wait_for_function(
+        "document.querySelector('#status').textContent.includes('Read 6 solves from cs.txt')"
+    )
 
     assert page.locator("#group-session").is_enabled()
     assert page.locator("#group-note").is_hidden()

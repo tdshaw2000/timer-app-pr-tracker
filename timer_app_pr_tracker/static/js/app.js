@@ -11,6 +11,11 @@ const chartsBox = document.getElementById("charts");
 
 const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
 let latestRequest = 0;
+const groupNote = document.getElementById("group-note");
+const groupSession = document.getElementById("group-session");
+const groupPuzzle = document.getElementById("group-puzzle");
+
+let analysis = null;
 let entries = [];
 let charts = [];
 
@@ -118,15 +123,10 @@ function showCharts() {
   for (const series of lines) drawChart(series, axis, colours);
 }
 
-function showResults({ entries: found, skipped }, fileName) {
-  entries = found;
-  const total = entries.reduce((sum, entry) => sum + entry.count, 0);
-  statusLine.textContent = `Read ${plural(total, "solve")} from ${fileName}.`;
-
-  const summary = skippedSummary(skipped);
-  skippedLine.textContent = summary;
-  skippedLine.hidden = summary === "";
-
+// The entries to pick from: one per session when asked and the file has sessions, else per puzzle.
+function fillSelector() {
+  const bySession = groupSession.checked && analysis.sessionEntries !== null;
+  entries = bySession ? analysis.sessionEntries : analysis.entries;
   puzzleSelect.replaceChildren(
     ...entries.map((entry, index) => {
       const option = document.createElement("option");
@@ -135,6 +135,23 @@ function showResults({ entries: found, skipped }, fileName) {
       return option;
     }),
   );
+}
+
+function showResults(found, fileName) {
+  analysis = found;
+  const { skipped } = found;
+  const hasSessions = found.sessionEntries !== null;
+  groupSession.disabled = !hasSessions;
+  groupNote.hidden = hasSessions;
+  groupPuzzle.checked = true;
+  fillSelector();
+  const total = entries.reduce((sum, entry) => sum + entry.count, 0);
+  statusLine.textContent = `Read ${plural(total, "solve")} from ${fileName}.`;
+
+  const summary = skippedSummary(skipped);
+  skippedLine.textContent = summary;
+  skippedLine.hidden = summary === "";
+
   results.hidden = entries.length === 0;
   if (entries.length > 0) showCharts();
 }
@@ -165,6 +182,12 @@ fileInput.addEventListener("change", async () => {
 });
 
 puzzleSelect.addEventListener("change", showCharts);
+for (const radio of document.querySelectorAll('input[name="group"]')) {
+  radio.addEventListener("change", () => {
+    fillSelector();
+    showCharts();
+  });
+}
 for (const radio of document.querySelectorAll('input[name="axis"]')) {
   radio.addEventListener("change", showCharts);
 }
