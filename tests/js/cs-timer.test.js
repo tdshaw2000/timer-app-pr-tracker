@@ -23,7 +23,36 @@ describe("importCsTimer", () => {
 
     expect(skipped).toEqual([]);
     expect(solves).toEqual([
-      { puzzle: "333", category: "Normal", dateMs: 1791966730000, timeMs: 17300, penalty: null },
+      {
+        puzzle: "333",
+        category: "Normal",
+        dateMs: 1791966730000,
+        timeMs: 17300,
+        penalty: null,
+        session: { number: 1, name: "1" },
+      },
+    ]);
+  });
+
+  it("says which session each solve came from, by its number and the name csTimer shows", () => {
+    const sessionData = {
+      1: { name: "Main", opt: {} },
+      2: { name: 2, opt: { scrType: "333oh" } },
+      3: { opt: {} },
+    };
+    const text = JSON.stringify({
+      session1: [solve(9000, 1791966730)],
+      session2: [solve(30000, 1791966740)],
+      session3: [solve(8000, 1791966750)],
+      properties: { sessionData: JSON.stringify(sessionData) },
+    });
+
+    const { solves } = importCsTimer(text);
+
+    expect(solves.map((s) => s.session)).toEqual([
+      { number: 1, name: "Main" },
+      { number: 2, name: "2" },
+      { number: 3, name: "Session 3" },
     ]);
   });
 

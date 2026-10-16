@@ -225,6 +225,69 @@ def test_a_csTimer_export_is_read_too(page):
     assert "session 1, solve 7" in page.locator("#skipped").inner_text()
 
 
+def sessions_export():
+    def solves(times, start):
+        return [[[0, t], "R U", "", start + i] for i, t in enumerate(times)]
+
+    data = {
+        "1": {"name": "Main", "opt": {}},
+        "2": {"name": "OH", "opt": {"scrType": "333oh"}},
+        "3": {"name": "Also main", "opt": {}},
+    }
+    return json.dumps(
+        {
+            "session1": solves([10000, 9000], 1_791_966_000),
+            "session2": solves([30000, 25000, 26000], 1_791_967_000),
+            "session3": solves([8000], 1_791_968_000),
+            "properties": {"sessionData": json.dumps(data)},
+        }
+    ).encode()
+
+
+def test_csTimer_files_can_be_grouped_by_session_instead_of_puzzle(page):
+    upload(page, sessions_export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    assert page.locator("#group-puzzle").is_checked()
+    assert page.locator("#puzzle option").all_inner_texts() == [
+        "3x3 (3 solves)",
+        "3x3 · One-handed (3 solves)",
+    ]
+
+    page.check("#group-session")
+    assert page.locator("#puzzle option").all_inner_texts() == [
+        "Main · 3x3 (2 solves)",
+        "OH · 3x3 · One-handed (3 solves)",
+        "Also main · 3x3 (1 solve)",
+    ]
+    page.select_option("#puzzle", label="OH · 3x3 · One-handed (3 solves)")
+    assert [p["y"] for p in chart_points(page)[0]["points"]] == [30, 25]
+
+    page.check("#group-puzzle")
+    assert page.locator("#puzzle option").count() == 2
+
+
+def test_the_group_by_choice_does_not_apply_to_cubic_timer_files(page):
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    assert page.locator("#group-session").is_disabled()
+    assert "csTimer" in page.locator("#group-note").inner_text()
+    assert page.locator("#puzzle option").count() == 3
+
+
+def test_group_by_session_is_available_again_after_loading_a_csTimer_file(page):
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+    page.set_input_files(
+        "#file", {"name": "cs.txt", "mimeType": "text/plain", "buffer": sessions_export()}
+    )
+    page.wait_for_function("document.querySelector('#status').textContent.includes('cs.txt')")
+
+    assert page.locator("#group-session").is_enabled()
+    assert page.locator("#group-note").is_hidden()
+
+
 def test_the_upload_says_both_formats_are_accepted(page):
     page.goto(page.base_url)
 
