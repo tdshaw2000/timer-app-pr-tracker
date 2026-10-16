@@ -78,6 +78,20 @@ describe("analyseExport", () => {
     ]);
   });
 
+  it("also groups a csTimer file by session, each session with its own charts", () => {
+    const { sessionEntries } = analyseExport(csTimer);
+
+    expect(sessionEntries.map((e) => [e.key, e.label, e.count])).toEqual([
+      ["session|1", "Session 1 · Pyraminx", 1],
+      ["session|2", "Session 2 · 3x3", 1],
+    ]);
+    expect(sessionEntries[0].series.solve[0].points).toEqual([{ x: 1, y: 8 }]);
+  });
+
+  it("has no session grouping for a Cubic Timer file, which has no sessions", () => {
+    expect(analyseExport(cubic).sessionEntries).toBeNull();
+  });
+
   it("tells the two formats apart even with a byte order mark or leading blank lines", () => {
     expect(analyseExport(`\uFEFF\n  ${csTimer}`).entries).toHaveLength(2);
     expect(analyseExport(`\uFEFF${cubic}`).entries).toHaveLength(2);

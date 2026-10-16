@@ -36,11 +36,17 @@
       <div class="controls">
         <label>Puzzle <select id="puzzle"></select></label>
         <fieldset>
+          <legend>Group by</legend>
+          <label><input type="radio" name="group" id="group-puzzle" value="puzzle" checked> Puzzle</label>
+          <label><input type="radio" name="group" id="group-session" value="session"> Session</label>
+        </fieldset>
+        <fieldset>
           <legend>X axis</legend>
           <label><input type="radio" name="axis" value="solve" checked> Solve number</label>
           <label><input type="radio" name="axis" value="date"> Date</label>
         </fieldset>
       </div>
+      <p id="group-note" hidden>Sessions only exist in csTimer files, so this file is grouped by puzzle.</p>
       <div id="charts"></div>
     </section>
   </main>

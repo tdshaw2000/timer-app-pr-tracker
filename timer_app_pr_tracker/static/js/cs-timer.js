@@ -46,7 +46,7 @@ function readSettings(file) {
 
 const isCount = (value) => Number.isSafeInteger(value) && value >= 0;
 
-function readSolve(entry, [puzzle, category]) {
+function readSolve(entry, [puzzle, category], session) {
   if (!Array.isArray(entry) || !Array.isArray(entry[0])) return { reason: "not a solve" };
   const [penalty, time] = entry[0];
   if (!isCount(time)) return { reason: `time is not a whole number of milliseconds: "${time}"` };
@@ -55,7 +55,7 @@ function readSolve(entry, [puzzle, category]) {
   const dateMs = seconds * 1000;
   if (dateMs > MAX_DATE_MS) return { reason: `date is beyond the calendar's range: "${seconds}"` };
 
-  const base = { puzzle, category, dateMs };
+  const base = { puzzle, category, dateMs, session };
   // csTimer stores a +2 solve's time without the 2 seconds, so they are added here.
   if (penalty === 0) return { solve: { ...base, timeMs: time, penalty: null } };
   if (penalty === 2000) return { solve: { ...base, timeMs: time + 2000, penalty: "+2" } };
@@ -82,8 +82,10 @@ export function importCsTimer(text) {
   const skipped = [];
   for (const { key, number } of sessions) {
     const event = eventFor(settings[number]?.opt?.scrType);
+    const name = settings[number]?.name;
+    const session = { number, name: name === undefined || name === null ? `Session ${number}` : String(name) };
     file[key].forEach((entry, index) => {
-      const { solve, reason } = readSolve(entry, event);
+      const { solve, reason } = readSolve(entry, event, session);
       if (solve) solves.push(solve);
       else skipped.push({ where: `session ${number}, solve ${index + 1}`, reason });
     });
