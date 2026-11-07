@@ -34,29 +34,42 @@ describe("dateAxisEnd", () => {
 });
 
 describe("dateTicks", () => {
-  const midnight = (year, month, day) => new Date(year, month, day).getTime();
-  const isMidnight = (ms) => new Date(ms).getTime() === midnight(...(d => [d.getFullYear(), d.getMonth(), d.getDate()])(new Date(ms)));
+  const at = (year, month, day, hour = 0) => new Date(year, month, day, hour).getTime();
 
-  it("puts ticks on local midnights, one per day, so no day repeats", () => {
-    const min = new Date(2026, 10, 5, 15, 0).getTime();
+  it("on a range of about two days, ticks every 12 hours, so the midnight in range is kept", () => {
+    const min = at(2026, 10, 5, 15);
     const max = endOfDay(2026, 10, 7);
 
-    const ticks = dateTicks(min, max);
-
-    expect(ticks).toEqual([midnight(2026, 10, 6), midnight(2026, 10, 7)]);
+    expect(dateTicks(min, max)).toEqual([
+      at(2026, 10, 6),
+      at(2026, 10, 6, 12),
+      at(2026, 10, 7),
+      at(2026, 10, 7, 12),
+    ]);
   });
 
-  it("widens the step in whole days when the range is long", () => {
-    const ticks = dateTicks(midnight(2026, 0, 1), endOfDay(2026, 9, 31), 6);
-
-    expect(ticks.length).toBeLessThanOrEqual(6);
-    expect(ticks.every(isMidnight)).toBe(true);
-    expect(new Set(ticks).size).toBe(ticks.length);
-  });
-
-  it("falls back to the two ends when less than two midnights fit", () => {
-    const min = new Date(2026, 10, 7, 9, 0).getTime();
+  it("within one day, ticks on whole hours that fit", () => {
+    const min = at(2026, 10, 7, 9);
     const max = endOfDay(2026, 10, 7);
+
+    expect(dateTicks(min, max)).toEqual([
+      at(2026, 10, 7, 9),
+      at(2026, 10, 7, 12),
+      at(2026, 10, 7, 15),
+      at(2026, 10, 7, 18),
+      at(2026, 10, 7, 21),
+    ]);
+  });
+
+  it("on a long range, ticks on whole days counted back from the last day", () => {
+    const ticks = dateTicks(at(2026, 0, 1), endOfDay(2026, 9, 31), 6);
+
+    expect(ticks).toEqual([0, 1, 2, 3, 4, 5].map((back) => at(2026, 9, 31 - 51 * (5 - back))));
+  });
+
+  it("falls back to the two ends when no tick fits", () => {
+    const min = at(2026, 10, 7, 9) + 60_000;
+    const max = min + 10 * 60_000;
 
     expect(dateTicks(min, max)).toEqual([min, max]);
   });
