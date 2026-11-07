@@ -493,3 +493,18 @@ def test_solve_number_charts_do_not_run_to_today(page):
     page.wait_for_selector("#results:not([hidden])")
 
     assert chart_x_max(page)[0] < 100
+
+
+def test_a_short_date_range_never_repeats_a_day_in_its_tick_labels(page):
+    # The solves are from the day of the fixed clock, so the axis spans less than a day.
+    page.clock.set_fixed_time("2025-12-25T20:00:00Z")
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    page.get_by_label("Date").check()
+
+    labels = page.evaluate(
+        "() => Chart.getChart(document.querySelector('#charts canvas')).scales.x.ticks.map((tick) => tick.label)"
+    )
+    assert len(labels) == len(set(labels))
+    assert len(labels) >= 2
