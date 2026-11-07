@@ -504,7 +504,8 @@ def test_a_short_date_range_never_repeats_a_day_in_its_tick_labels(page):
     page.get_by_label("Date").check()
 
     labels = page.evaluate(
-        "() => Chart.getChart(document.querySelector('#charts canvas')).scales.x.ticks.map((tick) => tick.label)"
+        "() => Chart.getChart(document.querySelector('#charts canvas'))"
+        ".scales.x.ticks.map((tick) => tick.label)"
     )
     assert len(labels) == len(set(labels))
     assert len(labels) >= 2
