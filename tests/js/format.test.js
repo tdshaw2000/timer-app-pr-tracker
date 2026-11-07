@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDay,
+  formatDayTime,
   formatTime,
   skippedSummary,
 } from "../../timer_app_pr_tracker/static/js/format.js";
@@ -66,5 +67,12 @@ describe("skippedSummary", () => {
     expect(skippedSummary(skipped)).toBe(
       "8 rows were left out: line 2 (bad), line 3 (bad), line 4 (bad), line 5 (bad), line 6 (bad) and 3 more",
     );
+  });
+});
+
+describe("formatDayTime", () => {
+  it("adds the 24-hour time to the day, in the given time zone", () => {
+    expect(formatDayTime(Date.UTC(2026, 10, 7, 9, 5), "UTC")).toBe("2026-11-07 09:05");
+    expect(formatDayTime(Date.UTC(2026, 10, 7, 23, 30), "Pacific/Auckland")).toBe("2026-11-08 12:30");
   });
 });
