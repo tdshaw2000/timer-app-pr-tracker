@@ -25,6 +25,16 @@ export function formatDay(ms, timeZone) {
   }).format(ms);
 }
 
+export function formatDayTime(ms, timeZone) {
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(ms);
+  return `${formatDay(ms, timeZone)} ${time}`;
+}
+
 const LISTED = 5;
 
 export function skippedSummary(skipped) {
