@@ -13,21 +13,24 @@ export function dateAxisEnd(nowMs, latestMs = -Infinity) {
 // the last day so the newest day is labelled. If no tick fits, the two ends are used.
 const HOUR_STEPS = [1, 2, 3, 6, 12];
 
-function hourTicks(minMs, maxMs, step) {
+// Stops once there are more than maxCount ticks, since the caller then moves to a larger step.
+function hourTicks(minMs, maxMs, step, maxCount) {
   const first = new Date(minMs);
   let hour = Math.floor(first.getHours() / step) * step;
   const ticks = [];
   for (;;) {
     const tick = new Date(first.getFullYear(), first.getMonth(), first.getDate(), hour).getTime();
     if (tick > maxMs) return ticks;
-    if (tick >= minMs) ticks.push(tick);
+    // A local hour skipped by the clocks going forward rolls over to the next, so drop repeats.
+    if (tick >= minMs && tick !== ticks.at(-1)) ticks.push(tick);
+    if (ticks.length > maxCount) return ticks;
     hour += step;
   }
 }
 
 export function dateTicks(minMs, maxMs, maxCount = 6) {
   for (const step of HOUR_STEPS) {
-    const ticks = hourTicks(minMs, maxMs, step);
+    const ticks = hourTicks(minMs, maxMs, step, maxCount);
     if (ticks.length > maxCount) continue;
     return ticks.length >= 2 ? ticks : [minMs, maxMs];
   }
