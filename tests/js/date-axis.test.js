@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { dateAxisEnd, dateTicks } from "../../timer_app_pr_tracker/static/js/date-axis.js";
 
 const endOfDay = (year, month, day) => new Date(year, month, day + 1).getTime() - 1;
@@ -72,5 +72,40 @@ describe("dateTicks", () => {
     const max = min + 10 * 60_000;
 
     expect(dateTicks(min, max)).toEqual([min, max]);
+  });
+
+  it("builds few Dates on a very long range, because it runs on every chart update and resize", () => {
+    const RealDate = Date;
+    let built = 0;
+    globalThis.Date = class extends RealDate {
+      constructor(...args) {
+        built += 1;
+        super(...args);
+      }
+    };
+    try {
+      dateTicks(at(2011, 0, 1), endOfDay(2026, 9, 31));
+    } finally {
+      globalThis.Date = RealDate;
+    }
+
+    expect(built).toBeLessThan(10_000);
+  });
+
+  describe("on a night the clocks go forward", () => {
+    const zone = process.env.TZ;
+    afterEach(() => {
+      if (zone === undefined) delete process.env.TZ;
+      else process.env.TZ = zone;
+    });
+
+    it("never repeats a tick", () => {
+      process.env.TZ = "Europe/London";
+      // Clocks in London go forward at 01:00 on 29 March 2026, so there is no 01:00 local hour.
+      const ticks = dateTicks(at(2026, 2, 29, 0), at(2026, 2, 29, 4) + 30 * 60_000);
+
+      expect(new Set(ticks).size).toBe(ticks.length);
+      expect(ticks).toEqual([...ticks].sort((a, b) => a - b));
+    });
   });
 });

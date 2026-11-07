@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 HEADER = '"Puzzle";"Category";"Time(millis)";"Date(millis)";"Scramble";"Penalty";"Comment"'
 START = 1_766_653_366_000
 
@@ -495,12 +497,19 @@ def test_solve_number_charts_do_not_run_to_today(page):
     assert chart_x_max(page)[0] < 100
 
 
-def test_a_short_date_range_labels_its_ticks_with_distinct_days_and_times(browser, base_url):
-    # The solves are from the day of the fixed clock, so the axis spans less than a day.
+@pytest.fixture
+def utc_page(browser, base_url):
     context = browser.new_context(timezone_id="UTC")
     context.set_default_timeout(5000)
     page = context.new_page()
     page.base_url = base_url
+    yield page
+    context.close()
+
+
+def test_a_short_date_range_labels_its_ticks_with_distinct_days_and_times(utc_page):
+    # The solves are from the day of the fixed clock, so the axis spans less than a day.
+    page = utc_page
     page.clock.set_fixed_time("2025-12-25T20:00:00Z")
     upload(page, export())
     page.wait_for_selector("#results:not([hidden])")
@@ -511,7 +520,6 @@ def test_a_short_date_range_labels_its_ticks_with_distinct_days_and_times(browse
         "() => Chart.getChart(document.querySelector('#charts canvas'))"
         ".scales.x.ticks.map((tick) => tick.label)"
     )
-    context.close()
     assert labels == [
         "2025-12-25 09:00",
         "2025-12-25 12:00",
