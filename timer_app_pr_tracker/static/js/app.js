@@ -1,6 +1,6 @@
 // The page: read a file in a worker, then chart each puzzle's records. Nothing is sent anywhere.
-import { dateAxisEnd } from "./date-axis.js";
-import { formatDay, formatTime, skippedSummary } from "./format.js";
+import { dateAxisEnd, dateTicks } from "./date-axis.js";
+import { formatDay, formatDayTime, formatTime, skippedSummary } from "./format.js";
 
 const fileInput = document.getElementById("file");
 const statusLine = document.getElementById("status");
@@ -41,6 +41,13 @@ function skinColours() {
     grid: read("--chart-grid"),
     font: getComputedStyle(document.body).fontFamily,
   };
+}
+
+// A tick on a local midnight is a day; any other tick (short ranges) also shows its time.
+function formatDateTick(ms) {
+  const date = new Date(ms);
+  const atMidnight = date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
+  return atMidnight ? formatDay(ms) : formatDayTime(ms);
 }
 
 function drawChart(series, axis, colours) {
@@ -89,7 +96,11 @@ function drawChart(series, axis, colours) {
             // Dates run to today even when the last record is old; the line itself stops at its last record.
             max: axis === "date" ? dateAxisEnd(Date.now(), series.points.at(-1).x) : undefined,
             title: { display: true, text: axis === "date" ? "Date" : "Solve number" },
-            ticks: { callback: (value) => (axis === "date" ? formatDay(value) : value) },
+            ticks: { callback: (value) => (axis === "date" ? formatDateTick(value) : value) },
+            // Dates: ticks on whole days, so a short range never repeats a day label.
+            afterBuildTicks: (scale) => {
+              if (axis === "date") scale.ticks = dateTicks(scale.min, scale.max).map((value) => ({ value }));
+            },
             grid: { color: colours.grid },
           },
           y: {
