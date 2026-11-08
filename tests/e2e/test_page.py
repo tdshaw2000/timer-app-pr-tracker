@@ -522,8 +522,41 @@ def test_a_short_date_range_labels_its_ticks_with_distinct_days_and_times(utc_pa
     )
     assert labels == [
         "2025-12-25 09:00",
-        "2025-12-25 12:00",
-        "2025-12-25 15:00",
-        "2025-12-25 18:00",
-        "2025-12-25 21:00",
+        "12:00",
+        "15:00",
+        "18:00",
+        "21:00",
     ]
+
+
+def date_axis_labels(page):
+    return page.evaluate(
+        "() => [...document.querySelectorAll('#charts canvas')]"
+        ".map((canvas) => Chart.getChart(canvas).scales.x.ticks.map((tick) => tick.label))"
+    )
+
+
+def test_a_date_range_of_about_two_days_labels_each_day_once(utc_page):
+    page = utc_page
+    page.clock.set_fixed_time("2025-12-27T10:00:00Z")
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    page.get_by_label("Date").check()
+
+    assert date_axis_labels(page)[0] == ["2025-12-26", "2025-12-27"]
+
+
+def test_date_labels_are_always_angled_so_they_never_overlap(page):
+    page.set_viewport_size({"width": 480, "height": 900})
+    page.clock.set_fixed_time("2026-01-09T10:00:00")
+    upload(page, export())
+    page.wait_for_selector("#results:not([hidden])")
+
+    page.get_by_label("Date").check()
+
+    rotations = page.evaluate(
+        "() => [...document.querySelectorAll('#charts canvas')]"
+        ".map((canvas) => Chart.getChart(canvas).scales.x.labelRotation)"
+    )
+    assert rotations and all(rotation == 45 for rotation in rotations)

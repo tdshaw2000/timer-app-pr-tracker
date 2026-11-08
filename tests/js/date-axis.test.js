@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { dateAxisEnd, dateTicks } from "../../timer_app_pr_tracker/static/js/date-axis.js";
+import { dateAxisEnd, dateTickLabel, dateTicks } from "../../timer_app_pr_tracker/static/js/date-axis.js";
 
 const endOfDay = (year, month, day) => new Date(year, month, day + 1).getTime() - 1;
 
@@ -36,16 +36,11 @@ describe("dateAxisEnd", () => {
 describe("dateTicks", () => {
   const at = (year, month, day, hour = 0) => new Date(year, month, day, hour).getTime();
 
-  it("on a range of about two days, ticks every 12 hours, so the midnight in range is kept", () => {
+  it("ticks only on whole days once two midnights fit, so a day is never shown twice", () => {
     const min = at(2026, 10, 5, 15);
     const max = endOfDay(2026, 10, 7);
 
-    expect(dateTicks(min, max)).toEqual([
-      at(2026, 10, 6),
-      at(2026, 10, 6, 12),
-      at(2026, 10, 7),
-      at(2026, 10, 7, 12),
-    ]);
+    expect(dateTicks(min, max)).toEqual([at(2026, 10, 6), at(2026, 10, 7)]);
   });
 
   it("within one day, ticks on whole hours that fit", () => {
@@ -107,5 +102,22 @@ describe("dateTicks", () => {
       expect(new Set(ticks).size).toBe(ticks.length);
       expect(ticks).toEqual([...ticks].sort((a, b) => a - b));
     });
+  });
+});
+
+describe("dateTickLabel", () => {
+  const at = (year, month, day, hour = 0) => new Date(year, month, day, hour).getTime();
+
+  it("shows a midnight as its day", () => {
+    expect(dateTickLabel(at(2026, 10, 7), 0)).toBe("2026-11-07");
+    expect(dateTickLabel(at(2026, 10, 7), 3)).toBe("2026-11-07");
+  });
+
+  it("shows the first tick off midnight with its day, so the axis says which day it is", () => {
+    expect(dateTickLabel(at(2026, 10, 7, 9), 0)).toBe("2026-11-07 09:00");
+  });
+
+  it("shows later ticks off midnight as the time alone, so the day is not repeated", () => {
+    expect(dateTickLabel(at(2026, 10, 7, 12), 1)).toBe("12:00");
   });
 });
