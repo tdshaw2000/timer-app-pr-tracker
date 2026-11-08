@@ -7,10 +7,13 @@ export function dateAxisEnd(nowMs, latestMs = -Infinity) {
   return Math.max(endOfToday, latestMs);
 }
 
-// Tick positions for the date axis, all on local clock times so no label repeats. Short ranges
-// tick on whole hours (every 1, 2, 3, 6 or 12 hours, the smallest step with at most maxCount
-// ticks). Longer ranges tick on local midnights, a whole number of days apart, counted back from
-// the last day so the newest day is labelled. If no tick fits, the two ends are used.
+import { formatDay, formatDayTime } from "./format.js";
+
+// Tick positions for the date axis, all on local clock times so no label repeats. When two or
+// more local midnights fit, it ticks on midnights only, a whole number of days apart, counted back
+// from the last day so the newest day is labelled. Shorter ranges tick on whole hours (every 1, 2,
+// 3, 6 or 12 hours, the smallest step with at most maxCount ticks). If no tick fits, the two ends
+// are used.
 const HOUR_STEPS = [1, 2, 3, 6, 12];
 
 // Stops once there are more than maxCount ticks, since the caller then moves to a larger step.
@@ -29,20 +32,34 @@ function hourTicks(minMs, maxMs, step, maxCount) {
 }
 
 export function dateTicks(minMs, maxMs, maxCount = 6) {
-  for (const step of HOUR_STEPS) {
-    const ticks = hourTicks(minMs, maxMs, step, maxCount);
-    if (ticks.length > maxCount) continue;
-    return ticks.length >= 2 ? ticks : [minMs, maxMs];
-  }
-
   const last = new Date(maxMs);
   const midnightBack = (days) =>
     new Date(last.getFullYear(), last.getMonth(), last.getDate() - days).getTime();
   let days = 0;
   while (midnightBack(days) >= minMs) days += 1;
 
-  const step = Math.ceil(days / maxCount);
-  const ticks = [];
-  for (let back = 0; back < days; back += step) ticks.unshift(midnightBack(back));
-  return ticks;
+  if (days >= 2) {
+    const step = Math.ceil(days / maxCount);
+    const ticks = [];
+    for (let back = 0; back < days; back += step) ticks.unshift(midnightBack(back));
+    return ticks;
+  }
+
+  for (const step of HOUR_STEPS) {
+    const ticks = hourTicks(minMs, maxMs, step, maxCount);
+    if (ticks.length > maxCount) continue;
+    if (ticks.length >= 2) return ticks;
+    break;
+  }
+  return [minMs, maxMs];
+}
+
+// A tick's label: a midnight is its day. Any other tick shows its time, with the day added only
+// on the first tick, so the axis says which day it is without repeating it.
+export function dateTickLabel(ms, index) {
+  const date = new Date(ms);
+  const atMidnight = date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
+  if (atMidnight) return formatDay(ms);
+  const dayTime = formatDayTime(ms);
+  return index === 0 ? dayTime : dayTime.slice(dayTime.indexOf(" ") + 1);
 }
